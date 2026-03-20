@@ -1,8 +1,8 @@
 "use client";
 // components/Navbar.tsx
-// Hidden until the user scrolls past the carousel sentinel (#carousel-end-sentinel).
-// On pages without the sentinel (e.g. project pages) it is always visible.
-import { useState, useEffect } from "react";
+// Opacity fades in as user scrolls from the midpoint to the bottom of the
+// carousel sentinel zone. Fades back out on scroll up. Uses rAF for smoothness.
+import { useState, useEffect, useRef } from "react";
 import { typoStyle, TypographyBlock } from "@/lib/typography";
 
 type NavLink = { label: string; href: string };
@@ -23,31 +23,52 @@ export default function Navbar({
   ctaHref  = "#contact",
   logoTypography,
 }: NavbarProps) {
-  // visible = false → navbar is hidden (opacity 0, pointer-events none, translated up)
-  // visible = true  → navbar is shown with a smooth slide-down
-  const [visible, setVisible] = useState(false);
+  const [opacity, setOpacity] = useState(0);
+  const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
+    // No sentinel on this page (e.g. project pages) → always fully visible
     const sentinel = document.getElementById("carousel-end-sentinel");
-
-    // No sentinel on this page (e.g. project detail page) → always show
     if (!sentinel) {
-      setVisible(true);
+      setOpacity(1);
       return;
     }
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        // Show navbar once sentinel has exited the viewport from the top
-        // (i.e. user has scrolled past the carousel)
-        setVisible(!entry.isIntersecting && entry.boundingClientRect.top < 0);
-      },
-      { threshold: 0 }
-    );
+    function update() {
+      // The carousel section sits directly above the sentinel.
+      // We want: opacity 0 at sentinel midpoint from top, opacity 1 at sentinel top = 0.
+      const sentinelRect = sentinel!.getBoundingClientRect();
 
-    observer.observe(sentinel);
-    return () => observer.disconnect();
+      // Distance of the sentinel from the top of the viewport.
+      // When sentinel.top = viewportHeight/2 → start fading in (opacity 0).
+      // When sentinel.top = 0 (or negative) → fully visible (opacity 1).
+      const vh = window.innerHeight;
+      const triggerStart = vh * 0.5;  // halfway down viewport = start of fade
+      const triggerEnd   = 0;         // sentinel at viewport top = fully shown
+
+      // Map sentinelRect.top from [triggerStart → triggerEnd] to [0 → 1]
+      // clamped so it never goes outside 0–1
+      const raw = (triggerStart - sentinelRect.top) / (triggerStart - triggerEnd);
+      const clamped = Math.min(1, Math.max(0, raw));
+
+      setOpacity(clamped);
+    }
+
+    function onScroll() {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(update);
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    update(); // run once on mount
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
   }, []);
+
+  const isVisible = opacity > 0;
 
   const logoStyle: React.CSSProperties = {
     fontFamily: "var(--font-display)",
@@ -74,14 +95,13 @@ export default function Navbar({
           box-shadow:inset 0 1px 0 rgba(255,255,255,0.18),inset 0 -1px 0 rgba(255,255,255,0.04),0 0 0 1px rgba(255,255,255,0.08),0 8px 32px rgba(0,0,0,0.4),0 2px 8px rgba(0,0,0,0.25);
         }
         .nav-inner::before {
-          content:''; position:absolute; inset:0;
+          content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
           background:linear-gradient(100deg,rgba(255,255,255,0.06) 0%,transparent 40%,rgba(255,255,255,0.03) 100%);
-          pointer-events:none; border-radius:inherit;
         }
         .nav-links { display:flex; list-style:none; position:relative; z-index:1; }
         .nav-links a { font-family:var(--font-body); font-weight:300; font-size:13px; color:rgba(255,255,255,0.6); text-decoration:none; padding:7px 20px; border-radius:50px; letter-spacing:0.1em; transition:color 0.2s,background 0.2s; display:block; }
         .nav-links a:hover { color:rgba(255,255,255,0.95); background:rgba(255,255,255,0.07); }
-        .nav-cta-btn { display:flex; align-items:center; gap:9px; border-radius:100px; text-decoration:none; position:relative; z-index:1; transition:transform 0.2s ease,box-shadow 0.2s ease; background:linear-gradient(135deg,rgba(255,255,255,0.95) 0%,rgba(235,235,235,0.88) 100%); box-shadow:inset 0 1px 0 rgba(255,255,255,1),0 2px 12px rgba(0,0,0,0.25),0 1px 3px rgba(0,0,0,0.15); padding:5px 6px 5px 16px; }
+        .nav-cta-btn { display:flex; align-items:center; gap:9px; border-radius:100px; text-decoration:none; position:relative; z-index:1; transition:transform 0.2s ease; background:linear-gradient(135deg,rgba(255,255,255,0.95) 0%,rgba(235,235,235,0.88) 100%); box-shadow:inset 0 1px 0 rgba(255,255,255,1),0 2px 12px rgba(0,0,0,0.25),0 1px 3px rgba(0,0,0,0.15); padding:5px 6px 5px 16px; }
         .nav-cta-btn:hover { transform:scale(1.03); }
         .nav-cta-btn span { font-family:var(--font-body); font-size:13px; font-weight:500; color:#1a1a1a; letter-spacing:0.08em; }
         .nav-dot { width:26px; height:26px; border-radius:50%; flex-shrink:0; display:grid; place-items:center; background:linear-gradient(135deg,#FF8C00 0%,#FF5500 100%); box-shadow:0 0 12px rgba(255,100,0,0.6),0 0 4px rgba(255,100,0,0.4),inset 0 1px 0 rgba(255,200,100,0.4); }
@@ -89,17 +109,18 @@ export default function Navbar({
       `}</style>
 
       <nav
+        aria-hidden={!isVisible}
         style={{
           position: "fixed",
           top: 0, left: 0, right: 0,
           zIndex: 200,
           padding: "14px 32px",
-          // Smooth reveal: translate up when hidden, slide down when visible
-          transform: visible ? "translateY(0)" : "translateY(-110%)",
-          opacity: visible ? 1 : 0,
-          transition: "transform 0.45s cubic-bezier(0.16,1,0.3,1), opacity 0.35s ease",
-          pointerEvents: visible ? "auto" : "none",
-          willChange: "transform, opacity",
+          // opacity driven by scroll progress — no JS transition, scroll IS the animation
+          opacity,
+          // Slide down slightly as it fades in for extra polish
+          transform: `translateY(${(1 - opacity) * -12}px)`,
+          pointerEvents: isVisible ? "auto" : "none",
+          willChange: "opacity, transform",
         }}
       >
         <div className="nav-inner">
