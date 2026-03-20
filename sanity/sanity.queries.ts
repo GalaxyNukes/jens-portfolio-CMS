@@ -25,6 +25,10 @@ export async function fetchHomePage() {
     sections[]{
       _type, _key,
       headlineTop, headlineBottom,
+      rotation { rotateX, rotateY, rotateZ },
+      position { topOffset, startX, sectionHeight },
+      perspective { depth, originX, originY },
+      cardSize { width, height, gap, borderRadius },
       topLineTypography ${TYPO}, bottomLineTypography ${TYPO},
       // carouselSection
       scrollSpeed,

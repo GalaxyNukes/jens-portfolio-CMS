@@ -22,6 +22,10 @@ type HeroProps = {
   headlineTop?: string;
   headlineBottom?: string;
   projects?: Project[];
+  rotation?: { rotateX?: number; rotateY?: number; rotateZ?: number };
+  position?: { topOffset?: number; startX?: number; sectionHeight?: number };
+  perspective?: { depth?: number; originX?: number; originY?: number };
+  cardSize?: { width?: number; height?: number; gap?: number; borderRadius?: number };
   topLineTypography?: TypographyBlock;
   bottomLineTypography?: TypographyBlock;
 };
@@ -203,6 +207,10 @@ export default function Hero({
   headlineTop = "CROSSMEDIA",
   headlineBottom = "Designer",
   projects = [],
+  rotation,
+  position,
+  perspective,
+  cardSize,
   topLineTypography,
   bottomLineTypography,
 }: HeroProps) {
@@ -225,7 +233,13 @@ export default function Hero({
           </div>
         </div>
       </section>
-      <CarouselSection projects={projects} />
+      <CarouselSection
+        projects={projects}
+        rotation={rotation}
+        position={position}
+        perspective={perspective}
+        cardSize={cardSize}
+      />
     </>
   );
 }

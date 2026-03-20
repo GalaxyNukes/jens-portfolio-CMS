@@ -62,6 +62,10 @@ export default async function HomePage() {
                     headlineTop={section.headlineTop}
                     headlineBottom={section.headlineBottom}
                     projects={projects}
+                    rotation={section.rotation}
+                    position={section.position}
+                    perspective={section.perspective}
+                    cardSize={section.cardSize}
                     topLineTypography={section.topLineTypography}
                     bottomLineTypography={section.bottomLineTypography}
                   />
