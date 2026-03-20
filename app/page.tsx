@@ -12,14 +12,18 @@ import Contact from "@/components/Contact";
 export const revalidate = 60;
 
 export default async function HomePage() {
-  const [settings, homePage, projects, experiences] = await Promise.all([
+  const [settings, homePage, rawProjects, rawExperiences] = await Promise.all([
     fetchSiteSettings(),
     fetchHomePage(),
     fetchProjects(),
     fetchExperiences(),
   ]);
 
-  if (!settings && !homePage) {
+  // Guard all arrays — Sanity can return null for empty datasets at build time
+  const projects    = Array.isArray(rawProjects)    ? rawProjects    : [];
+  const experiences = Array.isArray(rawExperiences) ? rawExperiences : [];
+
+  if (!settings) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "1.5rem", background: "#0C0C0C", color: "#fff", fontFamily: "system-ui", padding: "2rem", textAlign: "center" }}>
         <h1 style={{ fontSize: "2rem", fontWeight: "bold" }}>Jens De Meyer — Portfolio</h1>
@@ -33,11 +37,11 @@ export default async function HomePage() {
     );
   }
 
-  const sections = homePage?.sections || [];
+  const sections = Array.isArray(homePage?.sections) ? homePage.sections : [];
 
   return (
     <>
-      <Navbar navLinks={settings?.navLinks} ctaLabel={settings?.ctaLabel} ctaHref={settings?.ctaHref} />
+      <Navbar navLinks={settings?.navLinks ?? []} ctaLabel={settings?.ctaLabel} ctaHref={settings?.ctaHref} />
       <main>
         {sections.length === 0 ? (
           // Fallback: render all sections in original order if no CMS sections defined yet

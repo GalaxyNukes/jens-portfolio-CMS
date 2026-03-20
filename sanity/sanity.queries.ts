@@ -43,21 +43,24 @@ export async function fetchHomePage() {
 
 export async function fetchProjects() {
   if (!client) return [];
-  return client.fetch(`*[_type == "project" && published == true] | order(order asc){
+  const result = await client.fetch(`*[_type == "project" && published == true] | order(order asc){
     _id, title, coverImage, category, externalLink, shortDescription, order
   }`);
+  return Array.isArray(result) ? result : [];
 }
 
 export async function fetchExperiences() {
   if (!client) return [];
-  return client.fetch(`*[_type == "experience"] | order(order asc){
+  const result = await client.fetch(`*[_type == "experience"] | order(order asc){
     _id, companyName, companyLogo, role, dateRange, description, tags, responsibilities, order
   }`);
+  return Array.isArray(result) ? result : [];
 }
 
 export async function fetchBlogPosts() {
   if (!client) return [];
-  return client.fetch(`*[_type == "post" && published == true] | order(publishedAt desc){
+  const result = await client.fetch(`*[_type == "post" && published == true] | order(publishedAt desc){
     _id, title, slug, coverImage, publishedAt, tags
   }`);
+  return Array.isArray(result) ? result : [];
 }
