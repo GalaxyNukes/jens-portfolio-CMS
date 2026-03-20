@@ -5,7 +5,7 @@ import Image from "next/image";
 import { urlFor } from "@/sanity/sanity.image";
 import { typoStyle, TypographyBlock } from "@/lib/typography";
 
-type Project = { _id: string; title: string; coverImage: any; category?: string };
+type Project = { _id: string; title: string; coverImage: any; category?: string; slug?: { current: string } };
 
 type CarouselProps = {
   projects?: Project[];
@@ -170,32 +170,58 @@ export function CarouselSection({
             transform: `${BASE} translateX(${startX}px)`,
           }}
         >
-          {(projects.length > 0 ? projects : placeholders).map((p: any) => (
-            <div
-              key={p._id || p.num}
-              className="project-card"
-              style={{ width: cardW, height: cardH, borderRadius: cardRadius }}
-            >
-              {p.coverImage ? (
-                <Image
-                  src={urlFor(p.coverImage).width(700).url()}
-                  alt={p.title}
-                  width={cardW}
-                  height={cardH}
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
-              ) : (
-                <div className="card-placeholder">
-                  <span className="card-num">{p.num ?? "??"}</span>
-                  <span className="card-label">{p._id ? "No Image" : "Add Image"}</span>
+          {(projects.length > 0 ? projects : placeholders).map((p: any) => {
+            const href = p.slug?.current ? `/projects/${p.slug.current}` : null;
+            const card = (
+              <div
+                key={p._id || p.num}
+                className="project-card"
+                style={{ width: cardW, height: cardH, borderRadius: cardRadius }}
+              >
+                {p.coverImage ? (
+                  <Image
+                    src={urlFor(p.coverImage).width(700).url()}
+                    alt={p.title}
+                    width={cardW}
+                    height={cardH}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                ) : (
+                  <div className="card-placeholder">
+                    <span className="card-num">{p.num ?? "??"}</span>
+                    <span className="card-label">{p._id ? "No Image" : "Add Image"}</span>
+                  </div>
+                )}
+                <div className="card-overlay">
+                  <h3 style={typoStyle(cardTitleTypography)}>{p.title}</h3>
+                  <p style={typoStyle(cardCategoryTypography)}>{p.category || p.cat}</p>
+                  {href && (
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 10, fontFamily: "var(--font-body)", fontSize: 10, letterSpacing: "0.3em", color: "var(--orange,#FF7700)", textTransform: "uppercase" }}>
+                      View Project →
+                    </span>
+                  )}
                 </div>
-              )}
-              <div className="card-overlay">
-                <h3 style={typoStyle(cardTitleTypography)}>{p.title}</h3>
-                <p style={typoStyle(cardCategoryTypography)}>{p.category || p.cat}</p>
               </div>
-            </div>
-          ))}
+            );
+
+            // Wrap in a link only if the project has a slug.
+            // We use pointer-events none on drag to prevent navigation while dragging.
+            return href ? (
+              <a
+                key={p._id || p.num}
+                href={href}
+                style={{ display: "block", textDecoration: "none", flexShrink: 0 }}
+                draggable={false}
+                onClick={(e) => {
+                  // Suppress click if the user was dragging
+                  const el = e.currentTarget.closest(".carousel-track") as HTMLElement | null;
+                  if (el && el.style.cursor === "grabbing") e.preventDefault();
+                }}
+              >
+                {card}
+              </a>
+            ) : card;
+          })}
         </div>
       </section>
     </>

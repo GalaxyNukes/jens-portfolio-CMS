@@ -54,7 +54,7 @@ export async function fetchHomePage() {
 export async function fetchProjects() {
   if (!client) return [];
   const result = await client.fetch(`*[_type == "project" && published == true] | order(order asc){
-    _id, title, coverImage, category, externalLink, shortDescription, order
+    _id, title, slug, coverImage, category, externalLink, shortDescription, order
   }`);
   return Array.isArray(result) ? result : [];
 }
@@ -73,4 +73,26 @@ export async function fetchBlogPosts() {
     _id, title, slug, coverImage, publishedAt, tags
   }`);
   return Array.isArray(result) ? result : [];
+}
+
+export async function fetchAllProjectSlugs() {
+  if (!client) return [];
+  const result = await client.fetch(
+    `*[_type == "project" && published == true && defined(slug.current)]{ "slug": slug.current }`
+  );
+  return Array.isArray(result) ? result : [];
+}
+
+export async function fetchProjectBySlug(slug: string) {
+  if (!client) return null;
+  return client.fetch(
+    `*[_type == "project" && slug.current == $slug][0]{
+      _id, title, slug, category, year, client,
+      shortDescription, coverImage, externalLink,
+      headline, body, tags, credits,
+      gallery[]{ ..., "imageUrl": asset->url },
+      published
+    }`,
+    { slug }
+  );
 }
