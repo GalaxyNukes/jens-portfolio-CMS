@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── CSS custom property defaults ───────────────────────────────────────────
+   These are overridden at runtime by the CMS theme values injected in layout.tsx.
+   The --bg, --white, --orange, --orange-dim naming from the original index.html
+   is preserved here so any migrated styles continue to work without changes.
+   ─────────────────────────────────────────────────────────────────────────── */
+:root {
+  --color-accent: #ff7700;
+  --color-bg: #0c0c0c;
+  --color-text: #ffffff;
+  --font-display: "Bebas Neue", sans-serif;
+  --font-serif: "Playfair Display", serif;
+  --font-body: "Red Rose", sans-serif;
+
+  /* Original index.html variable aliases — kept for backwards compat */
+  --bg: var(--color-bg);
+  --white: var(--color-text);
+  --orange: var(--color-accent);
+  --orange-dim: color-mix(in srgb, var(--color-accent) 40%, transparent);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* ─── Selection color ──────────────────────────────────────────────────────── */
+::selection {
+  background: var(--color-accent);
+  color: var(--color-bg);
+}
+
+/* ─── Scrollbar ────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-accent);
+  border-radius: 2px;
+}
