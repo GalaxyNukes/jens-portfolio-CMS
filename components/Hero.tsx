@@ -266,6 +266,8 @@ export default function Hero({
         perspective={perspective}
         cardSize={cardSize}
       />
+      {/* Sentinel — Navbar becomes visible once this scrolls into view */}
+      <div id="carousel-end-sentinel" style={{ height: 1, width: "100%", pointerEvents: "none" }} aria-hidden="true" />
     </>
   );
 }
