@@ -1,108 +1,63 @@
 // sanity/sanity.queries.ts
+// revalidate is set at the page level (export const revalidate = 60)
+// fetch options third argument removed for next-sanity v9 compatibility
 import { client } from "./sanity.client";
 
-// ─── Fetchers ─────────────────────────────────────────────────────────────────
+const TYPO = `{ font, size, weight, style, letterSpacing, lineHeight, paragraphSpacing, textTransform, "colorHex": color.hex }`;
 
 export async function fetchSiteSettings() {
   if (!client) return null;
-  return client.fetch(
-    `*[_type == "siteSettings"][0]{
-      siteTitle,
-      metaDescription,
-      ogImage,
-      favicon,
-      accentColor,
-      backgroundColor,
-      textColor,
-      displayFont,
-      serifFont,
-      bodyFont,
-      customFonts[] {
-        fontName,
-        fontWeight,
-        fontStyle,
-        "fontFileUrl": fontFile.asset._ref
-      },
-      typography,
-      navLinks,
-      ctaLabel,
-      ctaHref,
-      instagram,
-      linkedin,
-      behance,
-      availableForWork,
-      email,
-      locationText,
-      coordinates,
-      blogEnabled
-    }`,
-    {},
-    { next: { revalidate: 60 } }
-  );
+  return client.fetch(`*[_type == "siteSettings"][0]{
+    siteTitle, metaDescription, ogImage, favicon,
+    accentColor, backgroundColor, textColor,
+    displayFont, serifFont, bodyFont,
+    customFonts[]{ fontName, fontWeight, fontStyle, "fontFileRef": fontFile.asset._ref },
+    navLinks, ctaLabel, ctaHref,
+    instagram, linkedin, behance,
+    availableForWork, email, locationText, coordinates, blogEnabled
+  }`);
 }
 
 export async function fetchHomePage() {
   if (!client) return null;
-  return client.fetch(
-    `*[_type == "homePage"][0]{
-      hero,
-      skills,
-      statement,
-      contact
-    }`,
-    {},
-    { next: { revalidate: 60 } }
-  );
+  return client.fetch(`*[_type == "homePage"][0]{
+    sections[]{
+      _type, _key,
+      headlineTop, headlineBottom,
+      topLineTypography ${TYPO}, bottomLineTypography ${TYPO},
+      scrollSpeed,
+      cardTitleTypography ${TYPO}, cardCategoryTypography ${TYPO},
+      items, separator, speed,
+      textTypography ${TYPO},
+      text, backgroundPhoto, chipPhoto, sectionLabel,
+      mainTextTypography ${TYPO},
+      companyNameTypography ${TYPO}, roleTypography ${TYPO},
+      descriptionTypography ${TYPO}, tagTypography ${TYPO},
+      tagline, headline, statusText, descriptionText, ctaLabel,
+      coordBarLeft, coordBarCenter, coordBarRight,
+      taglineTypography ${TYPO}, headlineTypography ${TYPO},
+      formLabelTypography ${TYPO}, ctaTypography ${TYPO}
+    }
+  }`);
 }
 
 export async function fetchProjects() {
   if (!client) return [];
-  return client.fetch(
-    `*[_type == "project" && published == true] | order(order asc) {
-      _id,
-      title,
-      coverImage,
-      category,
-      externalLink,
-      shortDescription,
-      order
-    }`,
-    {},
-    { next: { revalidate: 60 } }
-  );
+  return client.fetch(`*[_type == "project" && published == true] | order(order asc){
+    _id, title, coverImage, category, externalLink, shortDescription, order
+  }`);
 }
 
 export async function fetchExperiences() {
   if (!client) return [];
-  return client.fetch(
-    `*[_type == "experience"] | order(order asc) {
-      _id,
-      companyName,
-      companyLogo,
-      role,
-      dateRange,
-      description,
-      tags,
-      responsibilities,
-      order
-    }`,
-    {},
-    { next: { revalidate: 60 } }
-  );
+  return client.fetch(`*[_type == "experience"] | order(order asc){
+    _id, companyName, companyLogo, role, dateRange, description, tags, responsibilities, order
+  }`);
 }
 
 export async function fetchBlogPosts() {
   if (!client) return [];
-  return client.fetch(
-    `*[_type == "post" && published == true] | order(publishedAt desc) {
-      _id,
-      title,
-      slug,
-      coverImage,
-      publishedAt,
-      tags
-    }`,
-    {},
-    { next: { revalidate: 60 } }
-  );
+  return client.fetch(`*[_type == "post" && published == true] | order(publishedAt desc){
+    _id, title, slug, coverImage, publishedAt, tags
+  }`);
 }

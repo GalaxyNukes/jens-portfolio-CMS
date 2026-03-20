@@ -1,14 +1,9 @@
-// app/page.tsx — server component
-// Rule #3: fallback UI when CMS data is unavailable
-// Rule #6: revalidate = 60 for ISR
-import {
-  fetchSiteSettings,
-  fetchHomePage,
-  fetchProjects,
-  fetchExperiences,
-} from "@/sanity/sanity.queries";
+// app/page.tsx — page builder renderer
+// Maps over sections array from CMS and renders the right component per _type
+import { fetchSiteSettings, fetchHomePage, fetchProjects, fetchExperiences } from "@/sanity/sanity.queries";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
+import { CarouselSection } from "@/components/Hero";
 import SkillsMarquee from "@/components/SkillsMarquee";
 import Statement from "@/components/Statement";
 import Experience from "@/components/Experience";
@@ -17,7 +12,6 @@ import Contact from "@/components/Contact";
 export const revalidate = 60;
 
 export default async function HomePage() {
-  // Fetch all data in parallel — each fetch is null-safe (returns null or [])
   const [settings, homePage, projects, experiences] = await Promise.all([
     fetchSiteSettings(),
     fetchHomePage(),
@@ -25,93 +19,124 @@ export default async function HomePage() {
     fetchExperiences(),
   ]);
 
-  // ── Fallback: CMS not yet configured ────────────────────────────────────
   if (!settings && !homePage) {
     return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexDirection: "column",
-          gap: "1.5rem",
-          background: "#0C0C0C",
-          color: "#ffffff",
-          fontFamily: "system-ui, sans-serif",
-          padding: "2rem",
-          textAlign: "center",
-        }}
-      >
-        <h1 style={{ fontSize: "2rem", fontWeight: "bold" }}>
-          Jens De Meyer — Portfolio
-        </h1>
-        <p style={{ color: "rgba(255,255,255,0.5)", maxWidth: "480px" }}>
-          The CMS isn't connected yet. Visit{" "}
-          <a
-            href="/studio"
-            style={{ color: "#FF7700", textDecoration: "underline" }}
-          >
-            /studio
-          </a>{" "}
-          to set up your Sanity Studio, then fill in Site Settings and Home Page
-          content.
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "1.5rem", background: "#0C0C0C", color: "#fff", fontFamily: "system-ui", padding: "2rem", textAlign: "center" }}>
+        <h1 style={{ fontSize: "2rem", fontWeight: "bold" }}>Jens De Meyer — Portfolio</h1>
+        <p style={{ color: "rgba(255,255,255,0.5)", maxWidth: 480 }}>
+          CMS not connected yet. Visit <a href="/studio" style={{ color: "#FF7700" }}>/studio</a> to set up Sanity Studio, then fill in Site Settings and add sections to Home Page.
         </p>
         <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "0.875rem" }}>
-          Missing <code>NEXT_PUBLIC_SANITY_PROJECT_ID</code> in environment
-          variables? Add it to Vercel → Settings → Environment Variables.
+          Missing <code>NEXT_PUBLIC_SANITY_PROJECT_ID</code>? Add it in Vercel → Settings → Environment Variables.
         </p>
       </div>
     );
   }
 
+  const sections = homePage?.sections || [];
+
   return (
     <>
-      <Navbar
-        navLinks={settings?.navLinks}
-        ctaLabel={settings?.ctaLabel}
-        ctaHref={settings?.ctaHref}
-      />
-
+      <Navbar navLinks={settings?.navLinks} ctaLabel={settings?.ctaLabel} ctaHref={settings?.ctaHref} />
       <main>
-        <Hero
-          headlineTop={homePage?.hero?.headlineTop}
-          headlineBottom={homePage?.hero?.headlineBottom}
-          projects={projects}
-        />
-
-        <SkillsMarquee
-          skillItems={homePage?.skills?.skillItems}
-          separator={homePage?.skills?.separator}
-          scrollSpeed={homePage?.skills?.scrollSpeed}
-        />
-
-        <Statement
-          text={homePage?.statement?.text}
-          backgroundPhoto={homePage?.statement?.backgroundPhoto}
-          chipPhoto={homePage?.statement?.chipPhoto}
-          availableForWork={settings?.availableForWork}
-          instagram={settings?.instagram}
-          linkedin={settings?.linkedin}
-          behance={settings?.behance}
-        />
-
-        <Experience experiences={experiences} />
-
-        <Contact
-          tagline={homePage?.contact?.tagline}
-          headline={homePage?.contact?.headline}
-          statusText={homePage?.contact?.statusText}
-          descriptionText={homePage?.contact?.descriptionText}
-          ctaLabel={homePage?.contact?.ctaLabel}
-          email={settings?.email}
-          locationText={settings?.locationText}
-          coordinates={settings?.coordinates}
-          coordBarLeft={homePage?.contact?.coordBarLeft}
-          coordBarCenter={homePage?.contact?.coordBarCenter}
-          coordBarRight={homePage?.contact?.coordBarRight}
-          availableForWork={settings?.availableForWork}
-        />
+        {sections.length === 0 ? (
+          // Fallback: render all sections in original order if no CMS sections defined yet
+          <>
+            <Hero headlineTop="CROSSMEDIA" headlineBottom="Designer" projects={projects} />
+            <SkillsMarquee />
+            <Statement availableForWork={settings?.availableForWork} instagram={settings?.instagram} linkedin={settings?.linkedin} behance={settings?.behance} />
+            <Experience experiences={experiences} />
+            <Contact email={settings?.email} locationText={settings?.locationText} coordinates={settings?.coordinates} availableForWork={settings?.availableForWork} />
+          </>
+        ) : (
+          sections.map((section: any) => {
+            switch (section._type) {
+              case "heroSection":
+                return (
+                  <Hero
+                    key={section._key}
+                    headlineTop={section.headlineTop}
+                    headlineBottom={section.headlineBottom}
+                    projects={projects}
+                    topLineTypography={section.topLineTypography}
+                    bottomLineTypography={section.bottomLineTypography}
+                  />
+                );
+              case "carouselSection":
+                return (
+                  <CarouselSection
+                    key={section._key}
+                    projects={projects}
+                    scrollSpeed={section.scrollSpeed}
+                    cardTitleTypography={section.cardTitleTypography}
+                    cardCategoryTypography={section.cardCategoryTypography}
+                  />
+                );
+              case "marqueeSection":
+                return (
+                  <SkillsMarquee
+                    key={section._key}
+                    skillItems={section.items}
+                    separator={section.separator}
+                    scrollSpeed={section.speed}
+                    textTypography={section.textTypography}
+                  />
+                );
+              case "statementSection":
+                return (
+                  <Statement
+                    key={section._key}
+                    text={section.text}
+                    backgroundPhoto={section.backgroundPhoto}
+                    chipPhoto={section.chipPhoto}
+                    sectionLabel={section.sectionLabel}
+                    availableForWork={settings?.availableForWork}
+                    instagram={settings?.instagram}
+                    linkedin={settings?.linkedin}
+                    behance={settings?.behance}
+                    mainTextTypography={section.mainTextTypography}
+                  />
+                );
+              case "experienceSection":
+                return (
+                  <Experience
+                    key={section._key}
+                    sectionLabel={section.sectionLabel}
+                    experiences={experiences}
+                    companyNameTypography={section.companyNameTypography}
+                    roleTypography={section.roleTypography}
+                    descriptionTypography={section.descriptionTypography}
+                    tagTypography={section.tagTypography}
+                  />
+                );
+              case "contactSection":
+                return (
+                  <Contact
+                    key={section._key}
+                    tagline={section.tagline}
+                    headline={section.headline}
+                    statusText={section.statusText}
+                    descriptionText={section.descriptionText}
+                    ctaLabel={section.ctaLabel}
+                    coordBarLeft={section.coordBarLeft}
+                    coordBarCenter={section.coordBarCenter}
+                    coordBarRight={section.coordBarRight}
+                    email={settings?.email}
+                    locationText={settings?.locationText}
+                    coordinates={settings?.coordinates}
+                    availableForWork={settings?.availableForWork}
+                    taglineTypography={section.taglineTypography}
+                    headlineTypography={section.headlineTypography}
+                    descriptionTypography={section.descriptionTypography}
+                    formLabelTypography={section.formLabelTypography}
+                    ctaTypography={section.ctaTypography}
+                  />
+                );
+              default:
+                return null;
+            }
+          })
+        )}
       </main>
     </>
   );
