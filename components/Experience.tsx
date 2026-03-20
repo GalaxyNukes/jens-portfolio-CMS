@@ -1,5 +1,5 @@
 "use client";
-// components/Experience.tsx
+// components/Experience.tsx — matches original exactly
 import { useState } from "react";
 import Image from "next/image";
 import { urlFor } from "@/sanity/sanity.image";
@@ -13,158 +13,128 @@ type ExperienceItem = {
   description?: string;
   tags?: string[];
   responsibilities?: string[];
-  order?: number;
 };
 
 type ExperienceProps = {
-  sectionTitle?: string;
   experiences?: ExperienceItem[];
 };
 
-export default function Experience({
-  sectionTitle = "MY EXPERIENCE",
-  experiences = [],
-}: ExperienceProps) {
+export default function Experience({ experiences = [] }: ExperienceProps) {
   const [openId, setOpenId] = useState<string | null>(null);
 
-  const toggle = (id: string) => setOpenId(openId === id ? null : id);
+  const toggle = (id: string) =>
+    setOpenId(openId === id ? null : id);
+
+  // Fallback demo data matching original HTML
+  const fallback: ExperienceItem[] = [
+    { _id: "f1", companyName: "Freelance", role: "Crossmedia Designer · 2016 – 2018", dateRange: "2016 – 2018", description: "Independent design practice spanning branding, print, and early digital work.", tags: ["Branding", "Print", "Identity"], responsibilities: ["Build brand identities from scratch", "Design print and editorial layouts", "Develop client presentation decks"] },
+    { _id: "f2", companyName: "Plinke", role: "Junior Designer · 2018 – 2019", dateRange: "2018 – 2019", description: "Digital agency work covering web UI, social assets, and campaign visuals.", tags: ["Web", "Social", "Campaigns"], responsibilities: ["Create UI designs for client websites", "Produce social media visual sets", "Support senior designers on campaigns"] },
+    { _id: "f3", companyName: "Haze & Finn", role: "Crossmedia Designer · 2023 – Present", dateRange: "2023 – Present", description: "Shaping the visual identity and crossmedia output for a premium lifestyle brand.", tags: ["Crossmedia", "Lifestyle", "Campaigns"], responsibilities: ["Shape brand identity and crossmedia output", "Produce campaign visuals and motion content", "Manage all digital brand touchpoints", "Develop AI-assisted creative workflows"] },
+  ];
+
+  const items = experiences.length > 0 ? experiences : fallback;
 
   return (
-    <section
-      id="experience"
-      className="py-24"
-      style={{ background: "var(--color-bg)" }}
-    >
-      <div className="max-w-7xl mx-auto px-6">
-        {/* Section header */}
-        <div className="flex items-center gap-6 mb-16">
-          <h2
-            className="text-white text-xs tracking-[0.3em] uppercase"
-            style={{ fontFamily: "var(--font-body)" }}
-          >
-            {sectionTitle}
-          </h2>
-          <div className="flex-1 h-px bg-white/10" />
+    <>
+      <style>{`
+        #experience { padding:120px 0 60px; position:relative; z-index:10; background:var(--bg,#0C0C0C); }
+        .exp-heading { text-align:center; margin-bottom:80px; padding:0 60px; }
+        .exp-heading .my-word { font-family:var(--font-display); font-size:clamp(28px,4vw,48px); letter-spacing:0.14em; }
+        .exp-heading .exp-word { font-family:var(--font-serif); font-style:italic; font-weight:400; font-size:clamp(28px,4vw,48px); letter-spacing:0.06em; margin-left:10px; }
+        .logos-row { display:flex; flex-direction:column; width:100%; }
+        .logo-cell { border-top:1px solid rgba(255,255,255,0.07); cursor:pointer; position:relative; overflow:hidden; transition:background 0.25s; }
+        .logo-cell:last-child { border-bottom:1px solid rgba(255,255,255,0.07); }
+        .logo-cell-header { display:grid; grid-template-columns:80px 1fr auto 48px; align-items:center; gap:32px; padding:28px 60px; transition:background 0.25s; }
+        .logo-cell:hover .logo-cell-header, .logo-cell.open .logo-cell-header { background:rgba(255,255,255,0.02); }
+        .logo-cell-index { font-family:var(--font-body); font-size:11px; letter-spacing:0.3em; color:rgba(255,255,255,0.18); font-weight:300; }
+        .logo-wordmark { font-family:var(--font-body); font-size:15px; letter-spacing:0.14em; color:rgba(255,255,255,0.45); white-space:nowrap; text-transform:uppercase; transition:color 0.25s; }
+        .logo-cell:hover .logo-wordmark, .logo-cell.open .logo-wordmark { color:rgba(255,255,255,0.95); }
+        .logo-cell-role { font-family:var(--font-serif); font-style:italic; font-size:13px; color:rgba(255,255,255,0.28); text-align:right; transition:color 0.25s; }
+        .logo-cell:hover .logo-cell-role, .logo-cell.open .logo-cell-role { color:rgba(255,255,255,0.5); }
+        .logo-cell-toggle { width:32px; height:32px; border-radius:50%; border:1px solid rgba(255,255,255,0.12); display:grid; place-items:center; color:rgba(255,255,255,0.3); font-size:18px; line-height:1; transition:transform 0.35s ease,border-color 0.25s,background 0.25s,color 0.25s; flex-shrink:0; }
+        .logo-cell.open .logo-cell-toggle { transform:rotate(45deg); border-color:var(--orange,#FF7700); background:rgba(255,119,0,0.1); color:var(--orange,#FF7700); }
+        .logo-cell-body { display:grid; grid-template-rows:0fr; transition:grid-template-rows 0.38s cubic-bezier(0.16,1,0.3,1); }
+        .logo-cell.open .logo-cell-body { grid-template-rows:1fr; }
+        .logo-cell-body-inner { overflow:hidden; }
+        .logo-cell-body-content { display:grid; grid-template-columns:80px 1fr 1fr 48px; gap:32px; padding:0 60px 36px; border-top:1px solid rgba(255,255,255,0.05); }
+        .body-desc { font-family:var(--font-body); font-weight:300; font-size:13px; line-height:1.85; color:rgba(255,255,255,0.4); padding-top:24px; }
+        .body-tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:16px; }
+        .body-tag { font-family:var(--font-body); font-size:10px; letter-spacing:0.15em; color:rgba(255,255,255,0.35); text-transform:uppercase; border:1px solid rgba(255,255,255,0.1); border-radius:50px; padding:4px 12px; }
+        .body-responsibilities { padding-top:24px; }
+        .body-responsibilities h4 { font-family:var(--font-body); font-size:10px; letter-spacing:0.35em; color:var(--orange,#FF7700); text-transform:uppercase; margin-bottom:16px; }
+        .body-responsibilities ul { list-style:none; display:flex; flex-direction:column; gap:10px; }
+        .body-responsibilities li { font-family:var(--font-body); font-weight:300; font-size:13px; color:rgba(255,255,255,0.42); padding-left:18px; position:relative; line-height:1.5; }
+        .body-responsibilities li::before { content:'·'; position:absolute; left:0; color:var(--orange,#FF7700); font-size:20px; line-height:1; top:-2px; }
+        @media(max-width:860px) { .logo-cell-header { grid-template-columns:40px 1fr 48px; gap:16px; padding:20px 24px; } .logo-cell-body-content { grid-template-columns:40px 1fr 48px; padding:0 24px 24px; } }
+      `}</style>
+
+      <section id="experience">
+        <div className="exp-heading">
+          <span className="my-word">MY</span>
+          <span className="exp-word">Experience</span>
         </div>
 
-        {/* Accordion rows */}
-        <div className="space-y-0">
-          {experiences.map((exp, index) => {
-            const isOpen = openId === exp._id;
-            return (
-              <div key={exp._id} className="border-t border-white/10 last:border-b">
-                {/* Row header — always visible */}
-                <button
-                  className="w-full text-left py-6 flex items-center gap-6 group"
-                  onClick={() => toggle(exp._id)}
-                  aria-expanded={isOpen}
-                >
-                  {/* Index */}
-                  <span className="text-white/20 text-sm w-8 flex-shrink-0 font-mono">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
+        <div className="logos-row">
+          {items.map((exp, index) => (
+            <div
+              key={exp._id}
+              className={`logo-cell${openId === exp._id ? " open" : ""}`}
+              onClick={() => toggle(exp._id)}
+            >
+              <div className="logo-cell-header">
+                <span className="logo-cell-index">{String(index + 1).padStart(2, "0")}</span>
 
-                  {/* Logo */}
-                  <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center">
-                    {exp.companyLogo ? (
-                      <Image
-                        src={urlFor(exp.companyLogo).width(80).height(80).url()}
-                        alt={exp.companyName}
-                        width={40}
-                        height={40}
-                        className="object-contain filter brightness-0 invert opacity-60 group-hover:opacity-100 transition-opacity"
-                      />
-                    ) : (
-                      <div
-                        className="w-8 h-8 rounded-full border border-white/20"
-                        style={{ background: "var(--color-accent)", opacity: 0.3 }}
-                      />
-                    )}
-                  </div>
+                <span className="logo-wordmark">
+                  {exp.companyLogo ? (
+                    <Image
+                      src={urlFor(exp.companyLogo).width(120).url()}
+                      alt={exp.companyName}
+                      width={60}
+                      height={32}
+                      style={{ objectFit: "contain", filter: "brightness(0) invert(1)", opacity: 0.5 }}
+                    />
+                  ) : exp.companyName}
+                </span>
 
-                  {/* Company + Role */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-4 flex-wrap">
-                      <span
-                        className="text-white text-xl font-bold group-hover:text-[var(--color-accent)] transition-colors"
-                        style={{ fontFamily: "var(--font-display)" }}
-                      >
-                        {exp.companyName}
-                      </span>
-                      <span className="text-white/40 text-sm truncate">{exp.role}</span>
+                <span className="logo-cell-role">
+                  {exp.role}{exp.dateRange ? ` · ${exp.dateRange}` : ""}
+                </span>
+
+                <div className="logo-cell-toggle">+</div>
+              </div>
+
+              <div className="logo-cell-body">
+                <div className="logo-cell-body-inner">
+                  <div className="logo-cell-body-content">
+                    <div className="body-spacer" />
+                    <div className="body-desc">
+                      {exp.description}
+                      {exp.tags && exp.tags.length > 0 && (
+                        <div className="body-tags">
+                          {exp.tags.map(tag => (
+                            <span key={tag} className="body-tag">{tag}</span>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  </div>
-
-                  {/* Date range */}
-                  {exp.dateRange && (
-                    <span className="hidden sm:block text-white/30 text-sm flex-shrink-0 font-mono">
-                      {exp.dateRange}
-                    </span>
-                  )}
-
-                  {/* Chevron */}
-                  <span
-                    className="flex-shrink-0 text-white/40 group-hover:text-[var(--color-accent)] transition-all duration-300"
-                    style={{ transform: isOpen ? "rotate(45deg)" : "rotate(0deg)" }}
-                  >
-                    +
-                  </span>
-                </button>
-
-                {/* Accordion body */}
-                <div
-                  className="overflow-hidden transition-all duration-500"
-                  style={{ maxHeight: isOpen ? "600px" : "0px" }}
-                >
-                  <div className="pb-8 pl-[3.5rem] pr-4 grid md:grid-cols-2 gap-8">
-                    {/* Description */}
-                    {exp.description && (
-                      <div>
-                        <p className="text-white/60 text-sm leading-relaxed mb-4">
-                          {exp.description}
-                        </p>
-                        {/* Tags */}
-                        {exp.tags && exp.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-2">
-                            {exp.tags.map((tag) => (
-                              <span
-                                key={tag}
-                                className="px-3 py-1 text-xs tracking-wider uppercase border border-white/10 text-white/50"
-                              >
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-                        )}
+                    {exp.responsibilities && exp.responsibilities.length > 0 && (
+                      <div className="body-responsibilities">
+                        <h4>Role &amp; Responsibilities</h4>
+                        <ul>
+                          {exp.responsibilities.map((r, i) => (
+                            <li key={i}>{r}</li>
+                          ))}
+                        </ul>
                       </div>
                     )}
-
-                    {/* Responsibilities */}
-                    {exp.responsibilities && exp.responsibilities.length > 0 && (
-                      <ul className="space-y-2">
-                        {exp.responsibilities.map((item, i) => (
-                          <li key={i} className="flex items-start gap-3 text-sm text-white/50">
-                            <span style={{ color: "var(--color-accent)" }} className="mt-0.5 flex-shrink-0">
-                              —
-                            </span>
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                    <div className="body-spacer" />
                   </div>
                 </div>
               </div>
-            );
-          })}
-
-          {experiences.length === 0 && (
-            <p className="text-white/30 text-sm py-8">
-              No experience entries yet — add them in Sanity Studio.
-            </p>
-          )}
+            </div>
+          ))}
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 }

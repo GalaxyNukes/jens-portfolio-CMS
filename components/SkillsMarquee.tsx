@@ -1,12 +1,5 @@
 "use client";
-// components/SkillsMarquee.tsx
-import { useRef, useEffect } from "react";
-
-const SPEED_MAP: Record<string, number> = {
-  slow: 60,
-  medium: 35,
-  fast: 18,
-};
+// components/SkillsMarquee.tsx — matches original exactly
 
 type SkillsMarqueeProps = {
   skillItems?: string[];
@@ -14,55 +7,40 @@ type SkillsMarqueeProps = {
   scrollSpeed?: "slow" | "medium" | "fast";
 };
 
+const DURATION: Record<string, string> = { slow: "36s", medium: "22s", fast: "12s" };
+
 export default function SkillsMarquee({
-  skillItems = ["Branding", "Motion Design", "Web Design", "Art Direction", "Typography", "Visual Identity"],
+  skillItems = [
+    "Graphic Design", "Motion Design", "UI / UX", "Brand Identity",
+    "Art Direction", "AI-Assisted Workflows", "Typography", "Visual Storytelling",
+    "Crossmedia", "Photography", "Video Editing", "Web Design",
+  ],
   separator = "·",
   scrollSpeed = "medium",
 }: SkillsMarqueeProps) {
-  const duration = SPEED_MAP[scrollSpeed] || 35;
-
-  // Duplicate items for seamless loop
-  const items = [...skillItems, ...skillItems];
+  const duration = DURATION[scrollSpeed] || "22s";
+  const doubled = [...skillItems, ...skillItems];
 
   return (
-    <section
-      className="overflow-hidden py-5 border-y border-white/10 relative"
-      style={{ background: "var(--color-bg)" }}
-      aria-label="Skills"
-    >
-      {/* Fade edges */}
-      <div className="absolute left-0 top-0 bottom-0 w-20 z-10 pointer-events-none"
-        style={{ background: "linear-gradient(to right, var(--color-bg), transparent)" }} />
-      <div className="absolute right-0 top-0 bottom-0 w-20 z-10 pointer-events-none"
-        style={{ background: "linear-gradient(to left, var(--color-bg), transparent)" }} />
-
-      <div
-        className="flex whitespace-nowrap"
-        style={{
-          animation: `marquee ${duration}s linear infinite`,
-        }}
-      >
-        {items.map((skill, i) => (
-          <span key={i} className="flex items-center gap-6 px-6">
-            <span
-              className="text-sm tracking-widest uppercase"
-              style={{ color: "var(--color-text)", fontFamily: "var(--font-body, 'Red Rose', sans-serif)" }}
-            >
-              {skill}
-            </span>
-            <span style={{ color: "var(--color-accent)", fontSize: "1.2em" }}>
-              {separator}
-            </span>
-          </span>
-        ))}
-      </div>
-
+    <>
       <style>{`
-        @keyframes marquee {
-          from { transform: translateX(0); }
-          to { transform: translateX(-50%); }
-        }
+        @keyframes scrollSkills { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+        .skills-marquee { border-top:1px solid rgba(255,255,255,0.06); padding:275px 0 275px; overflow:hidden; position:relative; z-index:10; background:var(--bg,#0C0C0C); }
+        .skills-track { display:flex; width:max-content; animation:scrollSkills ${duration} linear infinite; }
+        .skills-track:hover { animation-play-state:paused; }
+        .skills-item { font-family:var(--font-serif); font-style:italic; font-weight:300; font-size:clamp(11px,1.1vw,15px); color:rgba(255,255,255,0.50); letter-spacing:0.1em; white-space:nowrap; padding:0 32px; flex-shrink:0; }
+        .skills-sep { color:var(--orange,#FF7700); font-style:normal; padding:0 0 0 32px; font-family:var(--font-serif); }
       `}</style>
-    </section>
+      <section className="skills-marquee">
+        <div className="skills-track">
+          {doubled.map((skill, i) => (
+            <span key={i} style={{ display: "flex", alignItems: "center" }}>
+              <span className="skills-item">{skill}</span>
+              <span className="skills-sep">{separator}</span>
+            </span>
+          ))}
+        </div>
+      </section>
+    </>
   );
 }

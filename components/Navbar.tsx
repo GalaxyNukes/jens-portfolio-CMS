@@ -1,103 +1,54 @@
 "use client";
 // components/Navbar.tsx
-import { useState, useEffect } from "react";
-
 type NavLink = { label: string; href: string };
-
 type NavbarProps = {
-  logoText?: string;
   navLinks?: NavLink[];
   ctaLabel?: string;
   ctaHref?: string;
 };
 
 export default function Navbar({
-  logoText = "JENS DE MEYER",
-  navLinks = [],
-  ctaLabel = "Get in Touch",
+  navLinks = [
+    { label: "HOME", href: "#home" },
+    { label: "GALLERY", href: "#experience" },
+    { label: "ABOUT ME", href: "#about" },
+  ],
+  ctaLabel = "GET IN TOUCH",
   ctaHref = "#contact",
 }: NavbarProps) {
-  const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? "backdrop-blur-md bg-black/60" : "bg-transparent"
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        {/* Logo */}
-        <a
-          href="/"
-          className="font-display text-xl tracking-widest text-white hover:text-[var(--color-accent)] transition-colors"
-          style={{ fontFamily: "var(--font-display, 'Bebas Neue', sans-serif)" }}
-        >
-          {logoText}
-        </a>
-
-        {/* Desktop Nav */}
-        <ul className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => (
-            <li key={link.href}>
-              <a
-                href={link.href}
-                className="text-white/70 hover:text-white text-sm tracking-widest uppercase transition-colors"
-              >
-                {link.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-
-        {/* CTA */}
-        <a
-          href={ctaHref}
-          className="hidden md:inline-flex items-center gap-2 px-5 py-2.5 border border-[var(--color-accent)] text-[var(--color-accent)] text-sm tracking-widest uppercase hover:bg-[var(--color-accent)] hover:text-black transition-all duration-200"
-        >
-          {ctaLabel}
-        </a>
-
-        {/* Mobile hamburger */}
-        <button
-          className="md:hidden text-white p-2"
-          onClick={() => setMenuOpen(!menuOpen)}
-          aria-label="Toggle menu"
-        >
-          <span className="block w-6 h-0.5 bg-white mb-1.5" />
-          <span className="block w-6 h-0.5 bg-white mb-1.5" />
-          <span className="block w-4 h-0.5 bg-white" />
-        </button>
-      </div>
-
-      {/* Mobile menu */}
-      {menuOpen && (
-        <div className="md:hidden bg-black/95 backdrop-blur-md px-6 pb-6">
-          {navLinks.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="block py-3 text-white/70 hover:text-white text-sm tracking-widest uppercase border-b border-white/10"
-              onClick={() => setMenuOpen(false)}
-            >
-              {link.label}
-            </a>
-          ))}
-          <a
-            href={ctaHref}
-            className="mt-4 inline-block px-5 py-2.5 border border-[var(--color-accent)] text-[var(--color-accent)] text-sm tracking-widest uppercase"
-            onClick={() => setMenuOpen(false)}
-          >
-            {ctaLabel}
+    <>
+      <style>{`
+        .nav-inner { display:flex; align-items:center; justify-content:space-between; height:52px; padding:0 8px 0 22px; border-radius:100px; position:relative; overflow:hidden; max-width:70%; margin:0 auto; background:linear-gradient(135deg,rgba(255,255,255,0.10) 0%,rgba(255,255,255,0.03) 50%,rgba(255,255,255,0.07) 100%); backdrop-filter:blur(32px) saturate(200%) brightness(1.1); -webkit-backdrop-filter:blur(32px) saturate(200%) brightness(1.1); box-shadow:inset 0 1px 0 rgba(255,255,255,0.18),inset 0 -1px 0 rgba(255,255,255,0.04),0 0 0 1px rgba(255,255,255,0.08),0 8px 32px rgba(0,0,0,0.4),0 2px 8px rgba(0,0,0,0.25); }
+        .nav-inner::before { content:''; position:absolute; inset:0; background:linear-gradient(100deg,rgba(255,255,255,0.06) 0%,transparent 40%,rgba(255,255,255,0.03) 100%); pointer-events:none; border-radius:inherit; }
+        .nav-logo { font-family:var(--font-display); font-size:16px; letter-spacing:0.18em; color:rgba(255,255,255,0.92); text-decoration:none; position:relative; z-index:1; }
+        .nav-links { display:flex; list-style:none; position:relative; z-index:1; }
+        .nav-links a { font-family:var(--font-body); font-weight:300; font-size:13px; color:rgba(255,255,255,0.6); text-decoration:none; padding:7px 20px; border-radius:50px; letter-spacing:0.1em; transition:color 0.2s,background 0.2s; display:block; }
+        .nav-links a:hover { color:rgba(255,255,255,0.95); background:rgba(255,255,255,0.07); }
+        .nav-cta-btn { display:flex; align-items:center; gap:9px; border-radius:100px; text-decoration:none; position:relative; z-index:1; transition:transform 0.2s ease,box-shadow 0.2s ease; background:linear-gradient(135deg,rgba(255,255,255,0.95) 0%,rgba(235,235,235,0.88) 100%); box-shadow:inset 0 1px 0 rgba(255,255,255,1),0 2px 12px rgba(0,0,0,0.25),0 1px 3px rgba(0,0,0,0.15); padding:5px 6px 5px 16px; }
+        .nav-cta-btn:hover { transform:scale(1.03); box-shadow:inset 0 1px 0 rgba(255,255,255,1),0 4px 20px rgba(0,0,0,0.3),0 1px 4px rgba(0,0,0,0.2); }
+        .nav-cta-btn span { font-family:var(--font-body); font-size:13px; font-weight:500; color:#1a1a1a; letter-spacing:0.08em; }
+        .nav-dot { width:26px; height:26px; border-radius:50%; flex-shrink:0; display:grid; place-items:center; background:linear-gradient(135deg,#FF8C00 0%,#FF5500 100%); box-shadow:0 0 12px rgba(255,100,0,0.6),0 0 4px rgba(255,100,0,0.4),inset 0 1px 0 rgba(255,200,100,0.4); }
+        @media(max-width:860px) { .nav-links { display:none; } }
+      `}</style>
+      <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 200, padding: "14px 32px" }}>
+        <div className="nav-inner">
+          <a href="#home" className="nav-logo">JENS DE MEYER</a>
+          <ul className="nav-links">
+            {navLinks.map((link) => (
+              <li key={link.href}><a href={link.href}>{link.label}</a></li>
+            ))}
+          </ul>
+          <a href={ctaHref} className="nav-cta-btn">
+            <span>{ctaLabel}</span>
+            <div className="nav-dot">
+              <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                <path d="M2 12L12 2M12 2H5M12 2V9" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
           </a>
         </div>
-      )}
-    </nav>
+      </nav>
+    </>
   );
 }
