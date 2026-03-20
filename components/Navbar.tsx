@@ -1,10 +1,13 @@
 "use client";
 // components/Navbar.tsx
+import { typoStyle, TypographyBlock } from "@/lib/typography";
+
 type NavLink = { label: string; href: string };
 type NavbarProps = {
   navLinks?: NavLink[];
   ctaLabel?: string;
   ctaHref?: string;
+  logoTypography?: TypographyBlock & { textTransform?: string };
 };
 
 export default function Navbar({
@@ -15,7 +18,21 @@ export default function Navbar({
   ],
   ctaLabel = "GET IN TOUCH",
   ctaHref = "#contact",
+  logoTypography,
 }: NavbarProps) {
+  // Build logo style: start from defaults, overlay CMS values
+  const logoStyle: React.CSSProperties = {
+    fontFamily: "var(--font-display)",
+    fontSize: 16,
+    letterSpacing: "0.18em",
+    color: "rgba(255,255,255,0.92)",
+    textDecoration: "none",
+    position: "relative",
+    zIndex: 1,
+    ...typoStyle(logoTypography),
+    // textTransform lives on the TypographyBlock but needs explicit cast
+    ...(logoTypography?.textTransform ? { textTransform: logoTypography.textTransform as any } : {}),
+  };
   return (
     <>
       <style>{`
@@ -33,7 +50,7 @@ export default function Navbar({
       `}</style>
       <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 200, padding: "14px 32px" }}>
         <div className="nav-inner">
-          <a href="#home" className="nav-logo">JENS DE MEYER</a>
+          <a href="#home" className="nav-logo" style={logoStyle}>JENS DE MEYER</a>
           <ul className="nav-links">
             {navLinks.map((link) => (
               <li key={link.href}><a href={link.href}>{link.label}</a></li>

@@ -41,7 +41,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <Navbar navLinks={settings?.navLinks ?? []} ctaLabel={settings?.ctaLabel} ctaHref={settings?.ctaHref} />
+      <Navbar navLinks={settings?.navLinks ?? []} ctaLabel={settings?.ctaLabel} ctaHref={settings?.ctaHref} logoTypography={settings?.logoTypography} />
       <main>
         {sections.length === 0 ? (
           // Fallback: render all sections in original order if no CMS sections defined yet

@@ -13,6 +13,7 @@ export const siteSettings = defineType({
     { name: "theme",     title: "🎨 Colors & Default Fonts" },
     { name: "fonts",     title: "🔤 Custom Font Uploads" },
     { name: "nav",       title: "🧭 Navigation" },
+    { name: "navTypo",   title: "🔤 Navbar Typography" },
     { name: "social",    title: "📱 Social Links" },
     { name: "contact",   title: "📬 Contact Info" },
     { name: "avail",     title: "🟢 Availability" },
@@ -103,6 +104,55 @@ export const siteSettings = defineType({
     }),
     defineField({ name: "ctaLabel", title: "CTA Button Text", type: "string", group: "nav", initialValue: "GET IN TOUCH" }),
     defineField({ name: "ctaHref", title: "CTA Button Link", type: "string", group: "nav", initialValue: "#contact" }),
+
+    // ── Navbar Typography ─────────────────────────────────
+    defineField({
+      name: "logoTypography",
+      title: "Logo / Name Typography",
+      type: "object",
+      group: "navTypo",
+      description: "Controls the appearance of 'JENS DE MEYER' in the navbar.",
+      options: { collapsible: false },
+      fields: [
+        defineField({
+          name: "font", title: "Font Family", type: "string",
+          description: 'Type a Google Font name or an uploaded custom font name. Leave blank to use the global Display Font.',
+          placeholder: "e.g. Bebas Neue, Playfair Display, My Custom Font",
+        }),
+        defineField({
+          name: "size", title: "Font Size", type: "string",
+          description: 'e.g. "16px" or "20px". Default is 16px.',
+          placeholder: "16px",
+        }),
+        defineField({
+          name: "weight", title: "Font Weight", type: "string",
+          options: { list: ["100","200","300","400","500","600","700","800","900"].map(w => ({ title: w, value: w })) },
+        }),
+        defineField({
+          name: "style", title: "Style", type: "string",
+          options: { list: [{ title: "Normal", value: "normal" }, { title: "Italic", value: "italic" }], layout: "radio" },
+        }),
+        defineField({
+          name: "letterSpacing", title: "Letter Spacing / Kerning", type: "string",
+          description: '"0.18em" wide (default) · "0" none · "-0.02em" tight',
+          placeholder: "0.18em",
+        }),
+        defineField({
+          name: "textTransform", title: "Text Transform", type: "string",
+          options: { list: [
+            { title: "None (as typed)", value: "none" },
+            { title: "ALL CAPS", value: "uppercase" },
+            { title: "all lowercase", value: "lowercase" },
+            { title: "Title Case", value: "capitalize" },
+          ], layout: "radio" },
+        }),
+        defineField({
+          name: "color", title: "Color", type: "color",
+          description: "Leave blank to use the default white",
+          options: { disableAlpha: true },
+        }),
+      ],
+    }),
 
     // ── Social ────────────────────────────────────────────
     defineField({ name: "instagram", title: "Instagram URL", type: "url", group: "social" }),

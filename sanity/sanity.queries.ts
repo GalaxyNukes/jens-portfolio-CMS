@@ -13,6 +13,7 @@ export async function fetchSiteSettings() {
     displayFont, serifFont, bodyFont,
     customFonts[]{ fontName, fontWeight, fontStyle, "fontFileRef": fontFile.asset._ref },
     navLinks, ctaLabel, ctaHref,
+    logoTypography { font, size, weight, style, letterSpacing, textTransform, "colorHex": color.hex },
     instagram, linkedin, behance,
     availableForWork, email, locationText, coordinates, blogEnabled
   }`);
