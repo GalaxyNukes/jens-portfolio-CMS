@@ -72,6 +72,10 @@ export default async function HomePage() {
                     key={section._key}
                     projects={projects}
                     scrollSpeed={section.scrollSpeed}
+                    rotation={section.rotation}
+                    position={section.position}
+                    perspective={section.perspective}
+                    cardSize={section.cardSize}
                     cardTitleTypography={section.cardTitleTypography}
                     cardCategoryTypography={section.cardCategoryTypography}
                   />
