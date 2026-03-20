@@ -45,195 +45,90 @@ export default function Statement({
       <style>{`
         @keyframes pulse-green { 0%,100%{box-shadow:0 0 8px rgba(74,222,128,0.7)} 50%{box-shadow:0 0 16px rgba(74,222,128,1)} }
 
-        /* ── Section shell — NO border-top, NO border-bottom ── */
-        #statement {
-          position: relative;
-          background: #0c0c0c;
-          overflow: hidden;
-        }
+        /* No border-top — the only change from the original design */
+        #statement { position:relative; padding:180px 60px; text-align:center; overflow:hidden; background:#0c0c0c; }
 
-        /* ── Inner layout: photo square + text side by side ── */
-        .statement-inner {
-          display: flex;
-          align-items: stretch;
-          max-width: 1200px;
-          margin: 0 auto;
-          min-height: 600px;
-        }
+        /* Dark gradient overlay on top of the photo for text readability */
+        #statement::after { content:''; position:absolute; inset:0; background:linear-gradient(to top,rgba(12,12,12,0.98) 0%,rgba(12,12,12,0.7) 40%,rgba(12,12,12,0.2) 75%,rgba(12,12,12,0) 100%); z-index:1; pointer-events:none; }
 
-        /* ── Photo column: fixed square, full height of the block ── */
-        .statement-photo-col {
-          flex: 0 0 auto;
-          width: clamp(280px, 33vw, 480px);
-          position: relative;
-          overflow: hidden;
-          /* Fades out on the right edge into the text */
-          -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%);
-          mask-image: linear-gradient(to right, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%);
-        }
+        /* Full-bleed background photo with bottom-to-top fade mask */
+        .statement-bg { position:absolute; inset:0; z-index:0; -webkit-mask-image:linear-gradient(to top,rgba(0,0,0,1) 50%,rgba(0,0,0,0) 100%); mask-image:linear-gradient(to top,rgba(0,0,0,1) 50%,rgba(0,0,0,0) 100%); filter:brightness(0.35) grayscale(0.2); }
+        .statement-bg img { width:100%; height:100%; object-fit:cover; object-position:center 20%; display:block; }
 
-        /* ── Text column ── */
-        .statement-text-col {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          padding: 80px 60px 80px 48px;
-          text-align: left;
-          position: relative;
-          z-index: 2;
-        }
-
-        .statement-text {
-          font-family: var(--font-serif);
-          font-weight: 400;
-          font-size: clamp(22px, 2.8vw, 40px);
-          line-height: 1.55;
-          color: rgba(255,255,255,0.88);
-          margin: 0 0 48px 0;
-        }
-
-        .statement-photo-chip {
-          display: inline-block;
-          width: 56px; height: 36px;
-          border-radius: 50px;
-          background: linear-gradient(135deg,#2a2a2a,#3a3a3a);
-          border: 1px solid rgba(255,255,255,0.12);
-          vertical-align: middle;
-          margin: 0 6px;
-          overflow: hidden;
-          position: relative;
-          top: -2px;
-        }
-
-        .statement-bottom {
-          display: flex;
-          align-items: center;
-          gap: 24px;
-          flex-wrap: wrap;
-        }
-
-        .available-badge {
-          display: flex; align-items: center; gap: 10px;
-          font-family: var(--font-body); font-size: 13px;
-          color: rgba(255,255,255,0.6); letter-spacing: 0.08em;
-        }
-
-        .available-dot {
-          width: 8px; height: 8px; border-radius: 50%;
-          background: #4ade80;
-          box-shadow: 0 0 8px rgba(74,222,128,0.7);
-          animation: pulse-green 2s infinite;
-        }
-
-        .statement-divider { width:1px; height:18px; background:rgba(255,255,255,0.12); }
-
-        .social-links { display:flex; align-items:center; gap:10px; }
-
-        .social-link {
-          width: 36px; height: 36px; border-radius: 50%;
-          border: 1px solid rgba(255,255,255,0.12);
-          display: grid; place-items: center;
-          text-decoration: none;
-          color: rgba(255,255,255,0.4);
-          transition: background 0.2s, color 0.2s, border-color 0.2s;
-        }
-        .social-link:hover {
-          background: rgba(255,255,255,0.08);
-          color: #fff;
-          border-color: rgba(255,255,255,0.3);
-        }
-        .social-link svg { width:15px; height:15px; }
-
-        .sect-label {
-          font-family: var(--font-body); font-size: 11px;
-          letter-spacing: 0.42em; color: rgba(255,255,255,0.25);
-          text-transform: uppercase; margin-bottom: 20px;
-        }
-
-        @media (max-width: 860px) {
-          .statement-inner { flex-direction: column; }
-          .statement-photo-col {
-            width: 100%; height: 320px;
-            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%);
-            mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%);
-          }
-          .statement-text-col { padding: 48px 24px; }
-        }
+        .statement-content { position:relative; z-index:2; }
+        .statement-text { font-family:var(--font-serif); font-weight:400; font-size:clamp(24px,3.5vw,46px); line-height:1.5; color:rgba(255,255,255,0.88); max-width:900px; margin:0 auto 60px; }
+        .statement-photo-chip { display:inline-block; width:56px; height:36px; border-radius:50px; background:linear-gradient(135deg,#2a2a2a,#3a3a3a); border:1px solid rgba(255,255,255,0.12); vertical-align:middle; margin:0 6px; overflow:hidden; position:relative; top:-2px; }
+        .statement-photo-chip img { width:100%; height:100%; object-fit:cover; }
+        .statement-bottom { display:flex; align-items:center; justify-content:center; gap:32px; flex-wrap:wrap; }
+        .available-badge { display:flex; align-items:center; gap:10px; font-family:var(--font-body); font-size:14px; font-weight:400; color:rgba(255,255,255,0.7); letter-spacing:0.08em; }
+        .available-dot { width:8px; height:8px; border-radius:50%; background:#4ade80; box-shadow:0 0 8px rgba(74,222,128,0.7); animation:pulse-green 2s infinite; }
+        .statement-divider { width:1px; height:20px; background:rgba(255,255,255,0.15); }
+        .social-links { display:flex; align-items:center; gap:12px; }
+        .social-link { width:40px; height:40px; border-radius:50%; border:1px solid rgba(255,255,255,0.12); display:grid; place-items:center; text-decoration:none; color:rgba(255,255,255,0.5); transition:background 0.2s,color 0.2s,border-color 0.2s; }
+        .social-link:hover { background:rgba(255,255,255,0.08); color:#fff; border-color:rgba(255,255,255,0.3); }
+        .social-link svg { width:16px; height:16px; }
+        .sect-label { font-family:var(--font-body); font-size:11px; letter-spacing:0.42em; color:rgba(255,255,255,0.28); text-transform:uppercase; margin-bottom:18px; }
+        @media(max-width:860px) { #statement { padding:120px 24px; } }
       `}</style>
 
       <section id="statement">
-        <div className="statement-inner">
-
-          {/* ── Photo column — fixed square left side ── */}
+        {/* Background photo — sits behind everything */}
+        <div className="statement-bg">
           {backgroundPhoto && (
-            <div className="statement-photo-col">
-              <Image
-                src={urlFor(backgroundPhoto).width(960).url()}
-                alt="Jens De Meyer"
-                fill
-                style={{ objectFit: "cover", objectPosition: "center top", filter: "brightness(0.6) grayscale(0.15)" }}
-              />
-            </div>
+            <Image
+              src={urlFor(backgroundPhoto).width(1400).url()}
+              alt=""
+              fill
+              style={{ objectFit: "cover", objectPosition: "center 20%" }}
+            />
           )}
+        </div>
 
-          {/* ── Text column ── */}
-          <div className="statement-text-col">
-            <p className="sect-label">{sectionLabel}</p>
+        {/* Centered text content */}
+        <div className="statement-content">
+          <p className="sect-label">{sectionLabel}</p>
 
-            <p className="statement-text" style={typoStyle(mainTextTypography)}>
-              {text && text.length > 0 ? (
-                <PortableText value={text} components={ptComponents} />
-              ) : (
-                <>
-                  I&apos;m{chipPhoto && (
-                    <span className="statement-photo-chip">
-                      <Image
-                        src={urlFor(chipPhoto).width(112).height(72).url()}
-                        alt="Jens"
-                        width={56}
-                        height={36}
-                      />
-                    </span>
-                  )} a Belgian <em style={{ fontStyle: "italic" }}>Crossmedia Designer</em> who crafts
-                  visual experiences across branding, motion, and digital — powered by curiosity
-                  and a sharp eye for detail.
-                </>
-              )}
-            </p>
+          <p className="statement-text" style={typoStyle(mainTextTypography)}>
+            {text && text.length > 0 ? (
+              <PortableText value={text} components={ptComponents} />
+            ) : (
+              <>
+                I&apos;m{chipPhoto && (
+                  <span className="statement-photo-chip">
+                    <Image
+                      src={urlFor(chipPhoto).width(112).height(72).url()}
+                      alt="Jens"
+                      width={56}
+                      height={36}
+                    />
+                  </span>
+                )} a Belgian <em style={{ fontStyle: "italic" }}>Crossmedia Designer</em> who crafts
+                visual experiences across branding, motion, and digital — powered by curiosity
+                and a sharp eye for detail.
+              </>
+            )}
+          </p>
 
-            <div className="statement-bottom">
-              {availableForWork && (
-                <div className="available-badge">
-                  <div className="available-dot" />
-                  Available for Work
+          <div className="statement-bottom">
+            {availableForWork && (
+              <div className="available-badge">
+                <div className="available-dot" />
+                Available for Work
+              </div>
+            )}
+            {SOCIALS.filter(s => socialUrls[s.id]).length > 0 && (
+              <>
+                <div className="statement-divider" />
+                <div className="social-links">
+                  {SOCIALS.filter(s => socialUrls[s.id]).map(s => (
+                    <a key={s.id} href={socialUrls[s.id]} target="_blank" rel="noopener noreferrer" className="social-link" aria-label={s.id}>
+                      <svg viewBox="0 0 24 24" fill="currentColor"><path d={s.path} /></svg>
+                    </a>
+                  ))}
                 </div>
-              )}
-
-              {SOCIALS.filter(s => socialUrls[s.id]).length > 0 && (
-                <>
-                  <div className="statement-divider" />
-                  <div className="social-links">
-                    {SOCIALS.filter(s => socialUrls[s.id]).map(s => (
-                      <a
-                        key={s.id}
-                        href={socialUrls[s.id]}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="social-link"
-                        aria-label={s.id}
-                      >
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                          <path d={s.path} />
-                        </svg>
-                      </a>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
+              </>
+            )}
           </div>
-
         </div>
       </section>
     </>
