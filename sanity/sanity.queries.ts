@@ -17,6 +17,13 @@ export async function fetchSiteSettings() {
       displayFont,
       serifFont,
       bodyFont,
+      customFonts[] {
+        fontName,
+        fontWeight,
+        fontStyle,
+        "fontFileUrl": fontFile.asset._ref
+      },
+      typography,
       navLinks,
       ctaLabel,
       ctaHref,
