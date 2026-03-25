@@ -2,15 +2,28 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { PortableText } from "next-sanity";
-import { fetchProjectBySlug, fetchAllProjectSlugs, fetchSiteSettings } from "@/sanity/sanity.queries";
+import {
+  fetchProjectBySlug,
+  fetchAllProjectSlugs,
+  fetchProjectsOrdered,
+  fetchSiteSettings,
+} from "@/sanity/sanity.queries";
 import { urlFor } from "@/sanity/sanity.image";
+import { safeHref } from "@/lib/security";
 import Navbar from "@/components/Navbar";
+import ProjectNav from "@/components/ProjectNav";
 
 export const revalidate = 60;
 
 export async function generateStaticParams() {
-  const slugs = await fetchAllProjectSlugs();
-  return slugs.map((s: { slug: string }) => ({ slug: s.slug }));
+  try {
+    const slugs = await fetchAllProjectSlugs();
+    return slugs
+      .filter((s: { slug: string }) => !!s.slug)
+      .map((s: { slug: string }) => ({ slug: s.slug }));
+  } catch {
+    return [];
+  }
 }
 
 const bodyComponents = {
@@ -24,7 +37,9 @@ const bodyComponents = {
     strong: ({ children }: any) => <strong style={{ color: "#fff", fontWeight: 700 }}>{children}</strong>,
     em:     ({ children }: any) => <em style={{ color: "var(--orange,#FF7700)", fontStyle: "italic" }}>{children}</em>,
     link:   ({ value, children }: any) => (
-      <a href={value?.href} target="_blank" rel="noopener noreferrer" className="proj-body-link">{children}</a>
+      <a href={safeHref(value?.href)} target="_blank" rel="noopener noreferrer" className="proj-body-link">
+        {children}
+      </a>
     ),
   },
   types: {
@@ -33,7 +48,7 @@ const bodyComponents = {
       return (
         <figure style={{ margin: "3em 0" }}>
           <div style={{ position: "relative", width: "100%", aspectRatio: "16/9", borderRadius: 8, overflow: "hidden" }}>
-            <Image src={urlFor(value).width(1200).url()} alt={value.alt || ""} fill style={{ objectFit: "cover" }} />
+            <Image src={urlFor(value).width(1200).url()} alt={value.alt ?? ""} fill style={{ objectFit: "cover" }} />
           </div>
           {value.caption && <figcaption className="proj-caption">{value.caption}</figcaption>}
         </figure>
@@ -43,19 +58,28 @@ const bodyComponents = {
 };
 
 export default async function ProjectPage({ params }: { params: { slug: string } }) {
-  const [project, settings] = await Promise.all([
+  const [project, settings, allProjects] = await Promise.all([
     fetchProjectBySlug(params.slug),
     fetchSiteSettings(),
+    fetchProjectsOrdered(),
   ]);
 
   if (!project || !project.published) notFound();
+
+  // ── Prev / Next from homepage order (matches what visitor sees) ──────────
+  const currentIndex = allProjects.findIndex(
+    (p: any) => p.slug?.current === params.slug
+  );
+  const prevProject = currentIndex > 0 ? allProjects[currentIndex - 1] : null;
+  const nextProject = currentIndex < allProjects.length - 1 ? allProjects[currentIndex + 1] : null;
+  const total = allProjects.length;
 
   const coverUrl = project.coverImage ? urlFor(project.coverImage).width(1600).url() : null;
 
   return (
     <>
       <style>{`
-        .proj-body-p     { font-family:var(--font-body); font-weight:300; font-size:clamp(15px,1.1vw,17px); line-height:1.85; color:rgba(255,255,255,0.65); margin-bottom:1.5em; }
+        .proj-body-p     { font-family:var(--font-body); font-weight:300; font-size:clamp(15px,1.1vw,17px); line-height:1.85; color:rgba(255,255,255,0.65); margin-bottom:1.5em; white-space:pre-wrap; }
         .proj-body-h2    { font-family:var(--font-display); font-size:clamp(28px,3vw,42px); letter-spacing:0.1em; color:#fff; margin-top:2em; margin-bottom:0.5em; }
         .proj-body-h3    { font-family:var(--font-serif); font-style:italic; font-size:clamp(20px,2vw,28px); color:rgba(255,255,255,0.8); margin-top:1.5em; margin-bottom:0.4em; }
         .proj-body-quote { border-left:3px solid var(--orange,#FF7700); padding-left:1.5em; margin-left:0; font-family:var(--font-serif); font-style:italic; font-size:clamp(18px,1.5vw,24px); color:rgba(255,255,255,0.6); margin-bottom:1.5em; }
@@ -77,9 +101,15 @@ export default async function ProjectPage({ params }: { params: { slug: string }
         logoTypography={settings?.logoTypography}
       />
 
+      {/* Keyboard + swipe navigation — client component */}
+      <ProjectNav
+        prevSlug={prevProject?.slug?.current ?? null}
+        nextSlug={nextProject?.slug?.current ?? null}
+      />
+
       <main style={{ background: "var(--bg,#0C0C0C)", minHeight: "100vh", color: "#fff" }}>
 
-        {/* Cover */}
+        {/* ── Cover ── */}
         <div style={{ position: "relative", width: "100%", height: "70vh", minHeight: 400, overflow: "hidden" }}>
           {coverUrl ? (
             <>
@@ -89,17 +119,28 @@ export default async function ProjectPage({ params }: { params: { slug: string }
           ) : (
             <div style={{ width: "100%", height: "100%", background: "#1a1a1a" }} />
           )}
+
+          {/* Counter + category + title */}
           <div style={{ position: "absolute", bottom: 48, left: "clamp(24px,5vw,80px)", right: "clamp(24px,5vw,80px)" }}>
-            {project.category && (
-              <p style={{ fontFamily: "var(--font-body)", fontSize: 11, letterSpacing: "0.4em", color: "var(--orange,#FF7700)", textTransform: "uppercase", marginBottom: 16 }}>{project.category}</p>
-            )}
+            <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 16 }}>
+              {project.category && (
+                <p style={{ fontFamily: "var(--font-body)", fontSize: 11, letterSpacing: "0.4em", color: "var(--orange,#FF7700)", textTransform: "uppercase", margin: 0 }}>
+                  {project.category}
+                </p>
+              )}
+              {total > 0 && currentIndex >= 0 && (
+                <p style={{ fontFamily: "var(--font-body)", fontSize: 11, letterSpacing: "0.2em", color: "rgba(255,255,255,0.3)", margin: 0 }}>
+                  {currentIndex + 1} / {total}
+                </p>
+              )}
+            </div>
             <h1 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(40px,7vw,100px)", letterSpacing: "0.06em", lineHeight: 0.9, color: "#fff", margin: 0 }}>
-              {project.headline || project.title}
+              {project.headline ?? project.title}
             </h1>
           </div>
         </div>
 
-        {/* Meta bar */}
+        {/* ── Meta bar ── */}
         <div style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "24px clamp(24px,5vw,80px)" }}>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "40px", alignItems: "center", maxWidth: 1200 }}>
             {project.client && (
@@ -122,7 +163,7 @@ export default async function ProjectPage({ params }: { params: { slug: string }
             )}
             {project.externalLink && (
               <div style={{ marginLeft: "auto" }}>
-                <a href={project.externalLink} target="_blank" rel="noopener noreferrer" className="proj-ext-btn">
+                <a href={safeHref(project.externalLink)} target="_blank" rel="noopener noreferrer" className="proj-ext-btn">
                   VIEW PROJECT
                   <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
                     <path d="M2 14L14 2M14 2H6M14 2V10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -133,10 +174,10 @@ export default async function ProjectPage({ params }: { params: { slug: string }
           </div>
         </div>
 
-        {/* Body */}
+        {/* ── Body ── */}
         <div style={{ maxWidth: 800, margin: "0 auto", padding: "80px clamp(24px,5vw,80px)" }}>
           {project.shortDescription && (
-            <p style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontSize: "clamp(18px,1.6vw,24px)", lineHeight: 1.6, color: "rgba(255,255,255,0.7)", marginBottom: "3em", borderLeft: "3px solid var(--orange,#FF7700)", paddingLeft: "1.5em" }}>
+            <p style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontSize: "clamp(18px,1.6vw,24px)", lineHeight: 1.6, color: "rgba(255,255,255,0.7)", marginBottom: "3em", borderLeft: "3px solid var(--orange,#FF7700)", paddingLeft: "1.5em", whiteSpace: "pre-wrap" }}>
               {project.shortDescription}
             </p>
           )}
@@ -166,16 +207,16 @@ export default async function ProjectPage({ params }: { params: { slug: string }
           )}
         </div>
 
-        {/* Gallery */}
+        {/* ── Gallery ── */}
         {project.gallery && project.gallery.length > 0 && (
-          <div style={{ padding: "0 clamp(24px,5vw,80px) 120px", maxWidth: 1400, margin: "0 auto" }}>
+          <div style={{ padding: "0 clamp(24px,5vw,80px) 80px", maxWidth: 1400, margin: "0 auto" }}>
             <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 60, marginBottom: 40 }}>
               <p style={{ fontFamily: "var(--font-body)", fontSize: 10, letterSpacing: "0.4em", color: "rgba(255,255,255,0.2)", textTransform: "uppercase" }}>Gallery</p>
             </div>
             <div style={{ columns: "2 360px", gap: 16 }}>
               {project.gallery.map((img: any, i: number) => (
                 <div key={i} style={{ breakInside: "avoid", marginBottom: 16 }}>
-                  <Image src={urlFor(img).width(900).url()} alt={img.alt || ""} width={900} height={600} className="proj-gallery-img" />
+                  <Image src={urlFor(img).width(900).url()} alt={img.alt ?? ""} width={900} height={600} className="proj-gallery-img" />
                   {img.caption && <p className="proj-caption">{img.caption}</p>}
                 </div>
               ))}
@@ -183,12 +224,38 @@ export default async function ProjectPage({ params }: { params: { slug: string }
           </div>
         )}
 
-        {/* Back */}
-        <div style={{ padding: "0 clamp(24px,5vw,80px) 80px" }}>
-          <a href="/" className="proj-back-link">← Back to portfolio</a>
-        </div>
+        {/* ── Prev / Next section ── */}
+        {(prevProject ?? nextProject) && (
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", padding: "60px clamp(24px,5vw,80px)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 24 }}>
+            {prevProject ? (
+              <a href={`/projects/${prevProject.slug?.current}`} style={{ display: "flex", flexDirection: "column", gap: 8, textDecoration: "none", maxWidth: "45%" }}>
+                <span style={{ fontFamily: "var(--font-body)", fontSize: 10, letterSpacing: "0.3em", color: "rgba(255,255,255,0.25)", textTransform: "uppercase" }}>← Previous</span>
+                <span style={{ fontFamily: "var(--font-display)", fontSize: "clamp(18px,2vw,28px)", letterSpacing: "0.08em", color: "rgba(255,255,255,0.7)", transition: "color 0.2s" }}
+                  onMouseEnter={undefined}
+                  className="proj-nav-link">
+                  {prevProject.title}
+                </span>
+              </a>
+            ) : <div />}
+
+            <a href="/" className="proj-back-link" style={{ flexShrink: 0 }}>← All work</a>
+
+            {nextProject ? (
+              <a href={`/projects/${nextProject.slug?.current}`} style={{ display: "flex", flexDirection: "column", gap: 8, textDecoration: "none", textAlign: "right", maxWidth: "45%" }}>
+                <span style={{ fontFamily: "var(--font-body)", fontSize: 10, letterSpacing: "0.3em", color: "rgba(255,255,255,0.25)", textTransform: "uppercase" }}>Next →</span>
+                <span style={{ fontFamily: "var(--font-display)", fontSize: "clamp(18px,2vw,28px)", letterSpacing: "0.08em", color: "rgba(255,255,255,0.7)" }} className="proj-nav-link">
+                  {nextProject.title}
+                </span>
+              </a>
+            ) : <div />}
+          </div>
+        )}
 
       </main>
+
+      <style>{`
+        .proj-nav-link:hover { color: #fff !important; }
+      `}</style>
     </>
   );
 }

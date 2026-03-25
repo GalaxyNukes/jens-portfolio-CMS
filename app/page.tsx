@@ -9,6 +9,8 @@ import Statement from "@/components/Statement";
 import Experience from "@/components/Experience";
 import Contact from "@/components/Contact";
 
+import { safeHref } from "@/lib/security";
+
 export const revalidate = 60;
 
 export default async function HomePage() {

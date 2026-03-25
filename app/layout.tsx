@@ -2,6 +2,7 @@
 import "./globals.css";
 import { fetchSiteSettings } from "@/sanity/sanity.queries";
 import { fileUrl } from "@/sanity/sanity.file";
+import { safeCssHex, safeCssFontName } from "@/lib/security";
 
 export const revalidate = 60;
 
@@ -26,23 +27,30 @@ function buildFontFaces(fonts: any[]): string {
   return fonts.map(f => {
     const url = f.fontFileRef ? fileUrl({ asset: { _ref: f.fontFileRef } }) : null;
     if (!url || !f.fontName) return "";
-    const ext = url.split(".").pop() || "woff2";
+    const safeName = safeCssFontName(f.fontName, "");
+    if (!safeName) return "";
+    const ext = url.split(".").pop() ?? "woff2";
     const fmt: Record<string, string> = { woff2: "woff2", woff: "woff", ttf: "truetype", otf: "opentype" };
-    return `@font-face{font-family:'${f.fontName}';src:url('${url}') format('${fmt[ext]||"woff2"}');font-weight:${f.fontWeight||"400"};font-style:${f.fontStyle||"normal"};font-display:swap;}`;
+    const weight = /^\d+$/.test(f.fontWeight ?? "") ? f.fontWeight : "400";
+    const style  = f.fontStyle === "italic" ? "italic" : "normal";
+    return `@font-face{font-family:'${safeName}';src:url('${url}') format('${fmt[ext] ?? "woff2"}');font-weight:${weight};font-style:${style};font-display:swap;}`;
   }).filter(Boolean).join("\n");
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const s = await fetchSiteSettings();
 
-  const accent  = s?.accentColor?.hex      || "#FF7700";
-  const bg      = s?.backgroundColor?.hex  || "#0C0C0C";
-  const text    = s?.textColor?.hex        || "#FFFFFF";
-  const display = s?.displayFont           || "Bebas Neue";
-  const serif   = s?.serifFont             || "Playfair Display";
-  const body    = s?.bodyFont              || "Red Rose";
+  // ── All CMS colors run through safeCssHex before injection ──────────────
+  const accent  = safeCssHex(s?.accentColor?.hex,      "#FF7700");
+  const bg      = safeCssHex(s?.backgroundColor?.hex,  "#0C0C0C");
+  const text    = safeCssHex(s?.textColor?.hex,        "#FFFFFF");
 
-  const fontFaces = buildFontFaces(s?.customFonts || []);
+  // ── Font names validated before injection ────────────────────────────────
+  const display = safeCssFontName(s?.displayFont, "Bebas Neue");
+  const serif   = safeCssFontName(s?.serifFont,   "Playfair Display");
+  const body    = safeCssFontName(s?.bodyFont,    "Red Rose");
+
+  const fontFaces = buildFontFaces(s?.customFonts ?? []);
 
   const css = `
 ${fontFaces}
@@ -57,8 +65,8 @@ ${fontFaces}
 body{background-color:${bg};color:${text};}
 `.trim();
 
-  const title   = s?.siteTitle       || "Jens De Meyer — Crossmedia Designer";
-  const desc    = s?.metaDescription || "Belgian Crossmedia Designer. Branding, Motion, Web.";
+  const title = s?.siteTitle       ?? "Jens De Meyer — Crossmedia Designer";
+  const desc  = s?.metaDescription ?? "Belgian Crossmedia Designer. Branding, Motion, Web.";
 
   return (
     <html lang="en">
@@ -69,9 +77,9 @@ body{background-color:${bg};color:${text};}
         <meta property="og:description" content={desc} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="stylesheet" href={DISPLAY_FONTS[display] || DISPLAY_FONTS["Bebas Neue"]} />
-        <link rel="stylesheet" href={SERIF_FONTS[serif]     || SERIF_FONTS["Playfair Display"]} />
-        <link rel="stylesheet" href={BODY_FONTS[body]       || BODY_FONTS["Red Rose"]} />
+        <link rel="stylesheet" href={DISPLAY_FONTS[display] ?? DISPLAY_FONTS["Bebas Neue"]} />
+        <link rel="stylesheet" href={SERIF_FONTS[serif]     ?? SERIF_FONTS["Playfair Display"]} />
+        <link rel="stylesheet" href={BODY_FONTS[body]       ?? BODY_FONTS["Red Rose"]} />
         <style dangerouslySetInnerHTML={{ __html: css }} />
       </head>
       <body>{children}</body>
