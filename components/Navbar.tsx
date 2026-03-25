@@ -1,7 +1,5 @@
 "use client";
 // components/Navbar.tsx
-// Opacity fades in as user scrolls from the midpoint to the bottom of the
-// carousel sentinel zone. Fades back out on scroll up. Uses rAF for smoothness.
 import { useState, useEffect, useRef } from "react";
 import { typoStyle, TypographyBlock } from "@/lib/typography";
 
@@ -27,31 +25,14 @@ export default function Navbar({
   const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
-    // No sentinel on this page (e.g. project pages) → always fully visible
     const sentinel = document.getElementById("carousel-end-sentinel");
-    if (!sentinel) {
-      setOpacity(1);
-      return;
-    }
+    if (!sentinel) { setOpacity(1); return; }
 
     function update() {
-      // The carousel section sits directly above the sentinel.
-      // We want: opacity 0 at sentinel midpoint from top, opacity 1 at sentinel top = 0.
-      const sentinelRect = sentinel!.getBoundingClientRect();
-
-      // Distance of the sentinel from the top of the viewport.
-      // When sentinel.top = viewportHeight/2 → start fading in (opacity 0).
-      // When sentinel.top = 0 (or negative) → fully visible (opacity 1).
+      const r = sentinel!.getBoundingClientRect();
       const vh = window.innerHeight;
-      const triggerStart = vh * 0.5;  // halfway down viewport = start of fade
-      const triggerEnd   = 0;         // sentinel at viewport top = fully shown
-
-      // Map sentinelRect.top from [triggerStart → triggerEnd] to [0 → 1]
-      // clamped so it never goes outside 0–1
-      const raw = (triggerStart - sentinelRect.top) / (triggerStart - triggerEnd);
-      const clamped = Math.min(1, Math.max(0, raw));
-
-      setOpacity(clamped);
+      const raw = (vh * 0.5 - r.top) / (vh * 0.5);
+      setOpacity(Math.min(1, Math.max(0, raw)));
     }
 
     function onScroll() {
@@ -60,8 +41,7 @@ export default function Navbar({
     }
 
     window.addEventListener("scroll", onScroll, { passive: true });
-    update(); // run once on mount
-
+    update();
     return () => {
       window.removeEventListener("scroll", onScroll);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -77,34 +57,204 @@ export default function Navbar({
     color: "rgba(255,255,255,0.92)",
     textDecoration: "none",
     position: "relative",
-    zIndex: 1,
+    zIndex: 2,
     ...typoStyle(logoTypography),
     ...(logoTypography?.textTransform ? { textTransform: logoTypography.textTransform as any } : {}),
   };
 
   return (
     <>
+      {/*
+        ── SVG filter definitions ──────────────────────────────────────────
+        feTurbulence  → organic noise field (the "ink" shape)
+        feDisplacementMap → uses that noise to warp the pixels behind the pill
+        This creates the liquid-glass / ink distortion effect.
+        Rendered hidden at 0×0 so it doesn't take up space.
+      */}
+      <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true">
+        <defs>
+          <filter id="liquid-glass" x="-20%" y="-50%" width="140%" height="200%" colorInterpolationFilters="sRGB">
+            {/* Organic turbulence noise — ink-like, slightly animated via CSS */}
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.012 0.008"
+              numOctaves="4"
+              seed="8"
+              stitchTiles="stitch"
+              result="noise"
+            />
+            {/* Scale controls the intensity of the warp — higher = more liquid */}
+            <feDisplacementMap
+              in="SourceGraphic"
+              in2="noise"
+              scale="28"
+              xChannelSelector="R"
+              yChannelSelector="G"
+              result="warped"
+            />
+          </filter>
+
+          {/* Separate softer noise for the frost layer */}
+          <filter id="frost-blur" x="-5%" y="-20%" width="110%" height="140%">
+            <feGaussianBlur stdDeviation="0.8" />
+          </filter>
+        </defs>
+      </svg>
+
       <style>{`
+        /* ── Liquid glass pill ──────────────────────────────────────────── */
+        .nav-outer {
+          position: relative;
+          max-width: 70%;
+          margin: 0 auto;
+        }
+
+        /* Layer 1: the distorted / warped backdrop — the "liquid" */
+        .nav-liquid {
+          position: absolute;
+          inset: 0;
+          border-radius: 100px;
+          overflow: hidden;
+          /* Apply the SVG warp filter to whatever is behind */
+          backdrop-filter: blur(0px) saturate(180%);
+          -webkit-backdrop-filter: blur(0px) saturate(180%);
+          filter: url(#liquid-glass);
+          /* Thin ink-like refraction tint */
+          background: linear-gradient(
+            135deg,
+            rgba(255,255,255,0.14) 0%,
+            rgba(255,255,255,0.04) 35%,
+            rgba(180,200,255,0.08) 60%,
+            rgba(255,255,255,0.10) 100%
+          );
+          /* Animate the distortion gently over time */
+          animation: liquidShift 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes liquidShift {
+          0%   { filter: url(#liquid-glass) brightness(1.0); }
+          33%  { filter: url(#liquid-glass) brightness(1.05) hue-rotate(3deg); }
+          66%  { filter: url(#liquid-glass) brightness(0.97) hue-rotate(-2deg); }
+          100% { filter: url(#liquid-glass) brightness(1.02) hue-rotate(1deg); }
+        }
+
+        /* Layer 2: frost — soft blur on top of the warp */
+        .nav-frost {
+          position: absolute;
+          inset: 0;
+          border-radius: 100px;
+          overflow: hidden;
+          /* This is the actual glass blur */
+          backdrop-filter: blur(28px) saturate(160%) brightness(1.08);
+          -webkit-backdrop-filter: blur(28px) saturate(160%) brightness(1.08);
+          /* Subtle noise texture baked in via gradient to simulate frosted glass grain */
+          background:
+            url("data:image/svg+xml,%3Csvg viewBox='0 0 200 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E") center/200px 60px,
+            linear-gradient(
+              108deg,
+              rgba(255,255,255,0.13) 0%,
+              rgba(255,255,255,0.04) 40%,
+              rgba(255,255,255,0.09) 100%
+            );
+          opacity: 0.9;
+        }
+
+        /* Layer 3: edge gloss — bright top rim + soft shadow */
         .nav-inner {
-          display:flex; align-items:center; justify-content:space-between;
-          height:52px; padding:0 8px 0 22px; border-radius:100px;
-          position:relative; overflow:hidden; max-width:70%; margin:0 auto;
-          background:linear-gradient(135deg,rgba(255,255,255,0.10) 0%,rgba(255,255,255,0.03) 50%,rgba(255,255,255,0.07) 100%);
-          backdrop-filter:blur(32px) saturate(200%) brightness(1.1);
-          -webkit-backdrop-filter:blur(32px) saturate(200%) brightness(1.1);
-          box-shadow:inset 0 1px 0 rgba(255,255,255,0.18),inset 0 -1px 0 rgba(255,255,255,0.04),0 0 0 1px rgba(255,255,255,0.08),0 8px 32px rgba(0,0,0,0.4),0 2px 8px rgba(0,0,0,0.25);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          height: 52px;
+          padding: 0 8px 0 22px;
+          border-radius: 100px;
+          position: relative;
+          overflow: hidden;
+          /* Transparent bg — layers beneath handle the look */
+          background: transparent;
+          box-shadow:
+            /* Inner top rim — the brightest highlight, like real glass catching light */
+            inset 0 1.5px 0 rgba(255,255,255,0.55),
+            /* Inner bottom — subtle shadow for depth */
+            inset 0 -1px 0 rgba(255,255,255,0.06),
+            /* Outer edge — very thin, like ink on frosted surface */
+            0 0 0 1px rgba(255,255,255,0.12),
+            /* Depth shadow below */
+            0 8px 40px rgba(0,0,0,0.45),
+            0 2px 8px rgba(0,0,0,0.3);
         }
+
+        /* Specular flare — the bright glint that moves across the pill */
         .nav-inner::before {
-          content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
-          background:linear-gradient(100deg,rgba(255,255,255,0.06) 0%,transparent 40%,rgba(255,255,255,0.03) 100%);
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          pointer-events: none;
+          background: linear-gradient(
+            112deg,
+            rgba(255,255,255,0.22) 0%,
+            rgba(255,255,255,0.06) 30%,
+            transparent 55%,
+            rgba(255,255,255,0.04) 100%
+          );
+          /* Slow drift of the specular flare */
+          animation: specularDrift 6s ease-in-out infinite alternate;
         }
-        .nav-links { display:flex; list-style:none; position:relative; z-index:1; }
-        .nav-links a { font-family:var(--font-body); font-weight:300; font-size:13px; color:rgba(255,255,255,0.6); text-decoration:none; padding:7px 20px; border-radius:50px; letter-spacing:0.1em; transition:color 0.2s,background 0.2s; display:block; }
-        .nav-links a:hover { color:rgba(255,255,255,0.95); background:rgba(255,255,255,0.07); }
-        .nav-cta-btn { display:flex; align-items:center; gap:9px; border-radius:100px; text-decoration:none; position:relative; z-index:1; transition:transform 0.2s ease; background:linear-gradient(135deg,rgba(255,255,255,0.95) 0%,rgba(235,235,235,0.88) 100%); box-shadow:inset 0 1px 0 rgba(255,255,255,1),0 2px 12px rgba(0,0,0,0.25),0 1px 3px rgba(0,0,0,0.15); padding:5px 6px 5px 16px; }
-        .nav-cta-btn:hover { transform:scale(1.03); }
-        .nav-cta-btn span { font-family:var(--font-body); font-size:13px; font-weight:500; color:#1a1a1a; letter-spacing:0.08em; }
-        .nav-dot { width:26px; height:26px; border-radius:50%; flex-shrink:0; display:grid; place-items:center; background:linear-gradient(135deg,#FF8C00 0%,#FF5500 100%); box-shadow:0 0 12px rgba(255,100,0,0.6),0 0 4px rgba(255,100,0,0.4),inset 0 1px 0 rgba(255,200,100,0.4); }
+
+        @keyframes specularDrift {
+          0%   { opacity: 1;    background-position: 0% 50%; }
+          50%  { opacity: 0.7; }
+          100% { opacity: 1;    background-position: 100% 50%; }
+        }
+
+        /* ── Nav links ──────────────────────────────────────────────────── */
+        .nav-links { display:flex; list-style:none; position:relative; z-index:2; }
+        .nav-links a {
+          font-family: var(--font-body); font-weight:300; font-size:13px;
+          color: rgba(255,255,255,0.7); text-decoration:none;
+          padding: 7px 20px; border-radius:50px; letter-spacing:0.1em;
+          transition: color 0.2s, background 0.2s; display:block;
+        }
+        .nav-links a:hover {
+          color: rgba(255,255,255,0.98);
+          background: rgba(255,255,255,0.1);
+        }
+
+        /* ── CTA pill ───────────────────────────────────────────────────── */
+        .nav-cta-btn {
+          display: flex; align-items:center; gap:9px; border-radius:100px;
+          text-decoration:none; position:relative; z-index:2;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+          background: linear-gradient(135deg, rgba(255,255,255,0.97) 0%, rgba(230,230,230,0.90) 100%);
+          box-shadow:
+            inset 0 1.5px 0 rgba(255,255,255,1),
+            inset 0 -1px 0 rgba(0,0,0,0.06),
+            0 2px 16px rgba(0,0,0,0.28),
+            0 1px 4px rgba(0,0,0,0.18);
+          padding: 5px 6px 5px 16px;
+        }
+        .nav-cta-btn:hover {
+          transform: scale(1.04);
+          box-shadow:
+            inset 0 1.5px 0 rgba(255,255,255,1),
+            0 4px 24px rgba(0,0,0,0.35);
+        }
+        .nav-cta-btn span {
+          font-family: var(--font-body); font-size:13px; font-weight:500;
+          color: #111; letter-spacing:0.08em;
+        }
+
+        /* ── Orange dot ─────────────────────────────────────────────────── */
+        .nav-dot {
+          width:26px; height:26px; border-radius:50%; flex-shrink:0;
+          display:grid; place-items:center;
+          background: linear-gradient(135deg, #FF9000 0%, #FF4400 100%);
+          box-shadow:
+            0 0 16px rgba(255,100,0,0.7),
+            0 0 6px rgba(255,100,0,0.5),
+            inset 0 1px 0 rgba(255,210,100,0.5);
+        }
+
         @media(max-width:860px) { .nav-links { display:none; } }
       `}</style>
 
@@ -115,33 +265,38 @@ export default function Navbar({
           top: 0, left: 0, right: 0,
           zIndex: 200,
           padding: "14px 32px",
-          // opacity driven by scroll progress — no JS transition, scroll IS the animation
           opacity,
-          // Slide down slightly as it fades in for extra polish
           transform: `translateY(${(1 - opacity) * -12}px)`,
           pointerEvents: isVisible ? "auto" : "none",
           willChange: "opacity, transform",
         }}
       >
-        <div className="nav-inner">
-          <a href="/" className="nav-logo" style={logoStyle}>JENS DE MEYER</a>
+        <div className="nav-outer">
+          {/* Distortion layer */}
+          <div className="nav-liquid" aria-hidden="true" />
+          {/* Frost layer */}
+          <div className="nav-frost" aria-hidden="true" />
+          {/* Content layer */}
+          <div className="nav-inner">
+            <a href="/" style={logoStyle}>JENS DE MEYER</a>
 
-          <ul className="nav-links">
-            {navLinks.map((link) => (
-              <li key={link.href}>
-                <a href={link.href}>{link.label}</a>
-              </li>
-            ))}
-          </ul>
+            <ul className="nav-links">
+              {navLinks.map((link) => (
+                <li key={link.href}>
+                  <a href={link.href}>{link.label}</a>
+                </li>
+              ))}
+            </ul>
 
-          <a href={ctaHref} className="nav-cta-btn">
-            <span>{ctaLabel}</span>
-            <div className="nav-dot">
-              <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
-                <path d="M2 12L12 2M12 2H5M12 2V9" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
-          </a>
+            <a href={ctaHref} className="nav-cta-btn">
+              <span>{ctaLabel}</span>
+              <div className="nav-dot">
+                <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                  <path d="M2 12L12 2M12 2H5M12 2V9" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </a>
+          </div>
         </div>
       </nav>
     </>
