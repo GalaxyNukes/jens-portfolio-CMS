@@ -32,6 +32,19 @@ export const carouselSection = defineType({
       },
       initialValue: "medium",
     }),
+    defineField({
+      name: "scrollDirection",
+      title: "Scroll Direction",
+      type: "string",
+      options: {
+        list: [
+          { title: "← Left (default)", value: "left" },
+          { title: "→ Right", value: "right" },
+        ],
+        layout: "radio",
+      },
+      initialValue: "left",
+    }),
 
     // ── 3D Rotation ───────────────────────────────────────
     defineField({

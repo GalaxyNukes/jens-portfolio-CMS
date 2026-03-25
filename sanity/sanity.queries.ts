@@ -36,7 +36,7 @@ export async function fetchHomePage() {
         perspective { depth, originX, originY },
         cardSize { width, height, gap, borderRadius },
         topLineTypography ${TYPO}, bottomLineTypography ${TYPO},
-        scrollSpeed,
+        scrollSpeed, scrollDirection,
         cardTitleTypography ${TYPO}, cardCategoryTypography ${TYPO},
         items, separator, speed,
         textTypography ${TYPO},

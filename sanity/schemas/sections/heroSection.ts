@@ -22,12 +22,26 @@ export const heroSection = defineType({
       initialValue: "Designer",
       description: 'e.g. "Designer" — displayed in italic serif',
     }),
-    // ── 3D Carousel controls (same as standalone Carousel section) ───────────
+
+    // ── 3D Carousel controls ──────────────────────────────────────────────
+    defineField({
+      name: "scrollDirection",
+      title: "Carousel — Scroll Direction",
+      type: "string",
+      options: {
+        list: [
+          { title: "← Left (default)", value: "left" },
+          { title: "→ Right", value: "right" },
+        ],
+        layout: "radio",
+      },
+      initialValue: "left",
+    }),
     defineField({
       name: "rotation",
-      title: "🎠 Carousel — 3D Rotation",
+      title: "Carousel — 3D Rotation",
       type: "object",
-      description: "Tilt and rotate the carousel. Default: X=22°, Y=-22°, Z=0°",
+      description: "Tilt and rotate the carousel. Default: X=22, Y=-22, Z=0",
       options: { collapsible: true, collapsed: true },
       fields: [
         defineField({ name: "rotateX", title: "Rotate X — Tilt (top away / toward you)", type: "number", description: "Default 22. Range: -90 to 90", initialValue: 22, validation: (Rule) => Rule.min(-90).max(90) }),
@@ -37,7 +51,7 @@ export const heroSection = defineType({
     }),
     defineField({
       name: "position",
-      title: "🎠 Carousel — Position",
+      title: "Carousel — Position",
       type: "object",
       description: "Move the carousel within the section.",
       options: { collapsible: true, collapsed: true },
@@ -49,7 +63,7 @@ export const heroSection = defineType({
     }),
     defineField({
       name: "perspective",
-      title: "🎠 Carousel — Perspective",
+      title: "Carousel — Perspective",
       type: "object",
       description: "Controls depth and vanishing point of the 3D effect.",
       options: { collapsible: true, collapsed: true },
@@ -61,7 +75,7 @@ export const heroSection = defineType({
     }),
     defineField({
       name: "cardSize",
-      title: "🎠 Carousel — Card Size",
+      title: "Carousel — Card Size",
       type: "object",
       options: { collapsible: true, collapsed: true },
       fields: [
@@ -73,14 +87,14 @@ export const heroSection = defineType({
     }),
 
     // Typography per line
-    typographyObject("topLineTypography", "🔤 Top Line Typography"),
-    typographyObject("bottomLineTypography", "🔤 Bottom Line Typography"),
+    typographyObject("topLineTypography", "Top Line Typography"),
+    typographyObject("bottomLineTypography", "Bottom Line Typography"),
   ],
   preview: {
     select: { top: "headlineTop", bottom: "headlineBottom" },
     prepare: ({ top, bottom }) => ({
       title: "Hero",
-      subtitle: `${top || "CROSSMEDIA"} / ${bottom || "Designer"}`,
+      subtitle: `${top ?? "CROSSMEDIA"} / ${bottom ?? "Designer"}`,
     }),
   },
 });

@@ -10,6 +10,7 @@ type Project = { _id: string; title: string; coverImage: any; category?: string;
 type CarouselProps = {
   projects?: Project[];
   scrollSpeed?: string;
+  scrollDirection?: "left" | "right";
   rotation?: { rotateX?: number; rotateY?: number; rotateZ?: number };
   position?: { topOffset?: number; startX?: number; sectionHeight?: number };
   perspective?: { depth?: number; originX?: number; originY?: number };
@@ -22,6 +23,7 @@ type HeroProps = {
   headlineTop?: string;
   headlineBottom?: string;
   projects?: Project[];
+  scrollDirection?: "left" | "right";
   rotation?: { rotateX?: number; rotateY?: number; rotateZ?: number };
   position?: { topOffset?: number; startX?: number; sectionHeight?: number };
   perspective?: { depth?: number; originX?: number; originY?: number };
@@ -34,6 +36,7 @@ type HeroProps = {
 export function CarouselSection({
   projects = [],
   scrollSpeed = "medium",
+  scrollDirection = "left",
   rotation,
   position,
   perspective: persp,
@@ -77,7 +80,7 @@ export function CarouselSection({
     });
     track.style.animation = "none";
 
-    const SPEED = SPEED_MAP[scrollSpeed] ?? 0.6;
+    const SPEED = (SPEED_MAP[scrollSpeed] ?? 0.6) * (scrollDirection === "right" ? -1 : 1);
     const FRICTION = 0.88;
     let x = startX, halfW = 0;
     let dragging = false, pointerStartX = 0, xAtDragStart = 0;
@@ -117,7 +120,7 @@ export function CarouselSection({
       window.removeEventListener("resize", measure);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projects, scrollSpeed, rX, rY, rZ, startX]);
+  }, [projects, scrollSpeed, scrollDirection, rX, rY, rZ, startX]);
 
   const placeholders = [
     { num: "01", title: "PROJECT ONE",   cat: "Graphic Design"  },
@@ -233,6 +236,7 @@ export default function Hero({
   headlineTop = "CROSSMEDIA",
   headlineBottom = "Designer",
   projects = [],
+  scrollDirection,
   rotation,
   position,
   perspective,
@@ -261,6 +265,7 @@ export default function Hero({
       </section>
       <CarouselSection
         projects={projects}
+        scrollDirection={scrollDirection}
         rotation={rotation}
         position={position}
         perspective={perspective}

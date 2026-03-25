@@ -68,6 +68,7 @@ export default async function HomePage() {
                     position={section.position}
                     perspective={section.perspective}
                     cardSize={section.cardSize}
+                    scrollDirection={section.scrollDirection}
                     topLineTypography={section.topLineTypography}
                     bottomLineTypography={section.bottomLineTypography}
                   />
@@ -78,6 +79,7 @@ export default async function HomePage() {
                     key={section._key}
                     projects={projects}
                     scrollSpeed={section.scrollSpeed}
+                    scrollDirection={section.scrollDirection}
                     rotation={section.rotation}
                     position={section.position}
                     perspective={section.perspective}
