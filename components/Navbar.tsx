@@ -67,14 +67,23 @@ export default function Navbar({
   return (
     <>
       <style>{`
-        /* ── Navbar pill ──────────────────────────────────────────────────── */
+        /* ── Navbar wrapper ──────────────────────────────────────────── */
         .nav-outer {
           position: relative;
           max-width: 900px;
           margin: 0 auto;
         }
 
-        /* Single clean glass pill — no SVG filter stack */
+        /*
+         * The glass pill.
+         *
+         * On a dark background, backdrop-filter alone produces a flat dark
+         * translucent look — it needs a meaningful white fill + brightness
+         * boost to read as "glass material" rather than "dark overlay".
+         *
+         * Target: visible frosted glass, similar to Apple-style liquid glass
+         * cards, adapted for a dark-background portfolio.
+         */
         .nav-pill {
           display: flex;
           align-items: center;
@@ -84,57 +93,71 @@ export default function Navbar({
           border-radius: 100px;
           position: relative;
           overflow: hidden;
+          isolation: isolate;
 
-          /* Glass */
-          backdrop-filter: blur(28px) saturate(180%) brightness(1.05);
-          -webkit-backdrop-filter: blur(28px) saturate(180%) brightness(1.05);
-          background: rgba(255,255,255,0.07);
+          /* Glass core:
+           * blur(32px)      → softens background content (shows it's a surface)
+           * saturate(180%)  → deepens colors bleeding through
+           * brightness(1.3) → critical — lifts the darkness so the pill reads
+           *                   as glass, not shadow */
+          backdrop-filter: blur(32px) saturate(180%) brightness(1.3);
+          -webkit-backdrop-filter: blur(32px) saturate(180%) brightness(1.3);
 
-          /* Border + shadow */
-          border: 1px solid rgba(255,255,255,0.13);
+          /* Semi-opaque white fill — this is what makes it look like glass
+           * on a dark BG. 0.07 was invisible. 0.15 reads as material. */
+          background: rgba(255, 255, 255, 0.12);
+
+          /* Border: two-tone — slightly brighter top-left, subtle elsewhere */
+          border: 1px solid rgba(255, 255, 255, 0.22);
+
           box-shadow:
-            /* top specular rim */
-            inset 0 1.5px 0 rgba(255,255,255,0.30),
-            /* bottom inner shadow */
-            inset 0 -1px 0 rgba(0,0,0,0.12),
-            /* outer depth */
-            0 8px 40px rgba(0,0,0,0.50),
-            0 2px 8px rgba(0,0,0,0.28);
+            /* Inner top rim — the sharpest specular */
+            inset 0 1.5px 0 rgba(255, 255, 255, 0.50),
+            /* Inner left rim */
+            inset 1px 0 0 rgba(255, 255, 255, 0.12),
+            /* Inner bottom — depth shadow */
+            inset 0 -1px 0 rgba(0, 0, 0, 0.18),
+            /* Outer glow — gives the pill presence on the dark page */
+            0 0 0 1px rgba(255, 255, 255, 0.06),
+            /* Depth shadow */
+            0 8px 40px rgba(0, 0, 0, 0.55),
+            0 2px 10px rgba(0, 0, 0, 0.35);
         }
 
-        /* Specular gloss sweep across the top of the pill */
+        /* Top-left corner gloss sweep — the "light hitting glass" moment */
         .nav-pill::before {
           content: '';
           position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          pointer-events: none;
+          background: linear-gradient(
+            120deg,
+            rgba(255, 255, 255, 0.18) 0%,
+            rgba(255, 255, 255, 0.06) 30%,
+            transparent 55%
+          );
+        }
+
+        /* Top-edge specular line — ultra-thin bright line across the rim */
+        .nav-pill::after {
+          content: '';
+          position: absolute;
           top: 0;
-          left: 8%;
-          right: 8%;
+          left: 12%;
+          right: 12%;
           height: 1px;
           background: linear-gradient(
             90deg,
             transparent 0%,
-            rgba(255,255,255,0.55) 25%,
-            rgba(255,255,255,0.55) 75%,
+            rgba(255, 255, 255, 0.65) 20%,
+            rgba(255, 255, 255, 0.65) 80%,
             transparent 100%
           );
           pointer-events: none;
         }
 
-        /* Soft internal highlight gradient (upper-left quadrant) */
-        .nav-pill::after {
-          content: '';
-          position: absolute;
-          inset: 0;
-          border-radius: inherit;
-          background: linear-gradient(
-            120deg,
-            rgba(255,255,255,0.09) 0%,
-            transparent 45%
-          );
-          pointer-events: none;
-        }
-
-        /* ── Nav links ──────────────────────────────────────────────────── */
+        /* ── Nav links ──────────────────────────────────────────────── */
         .nav-links {
           display: flex;
           list-style: none;
@@ -148,7 +171,7 @@ export default function Navbar({
           font-family: var(--font-body);
           font-weight: 300;
           font-size: 13px;
-          color: rgba(255,255,255,0.68);
+          color: rgba(255, 255, 255, 0.80);
           text-decoration: none;
           padding: 7px 20px;
           border-radius: 50px;
@@ -157,11 +180,11 @@ export default function Navbar({
           display: block;
         }
         .nav-links a:hover {
-          color: rgba(255,255,255,0.96);
-          background: rgba(255,255,255,0.09);
+          color: rgba(255, 255, 255, 0.98);
+          background: rgba(255, 255, 255, 0.12);
         }
 
-        /* ── CTA button ─────────────────────────────────────────────────── */
+        /* ── CTA button ─────────────────────────────────────────────── */
         .nav-cta-btn {
           display: flex;
           align-items: center;
@@ -173,22 +196,21 @@ export default function Navbar({
           transition: transform 0.18s ease, box-shadow 0.18s ease;
           background: linear-gradient(
             160deg,
-            rgba(255,255,255,0.98) 0%,
-            rgba(228,228,228,0.93) 100%
+            rgba(255, 255, 255, 0.98) 0%,
+            rgba(225, 225, 225, 0.93) 100%
           );
           box-shadow:
-            inset 0 1.5px 0 rgba(255,255,255,1),
-            inset 0 -1px 0 rgba(0,0,0,0.05),
-            0 2px 14px rgba(0,0,0,0.22),
-            0 1px 3px rgba(0,0,0,0.14);
+            inset 0 1.5px 0 rgba(255, 255, 255, 1),
+            inset 0 -1px 0 rgba(0, 0, 0, 0.05),
+            0 2px 14px rgba(0, 0, 0, 0.24),
+            0 1px 4px rgba(0, 0, 0, 0.14);
           padding: 5px 6px 5px 18px;
         }
         .nav-cta-btn:hover {
           transform: scale(1.04);
           box-shadow:
-            inset 0 1.5px 0 rgba(255,255,255,1),
-            0 4px 22px rgba(0,0,0,0.32),
-            0 1px 4px rgba(0,0,0,0.16);
+            inset 0 1.5px 0 rgba(255, 255, 255, 1),
+            0 4px 24px rgba(0, 0, 0, 0.34);
         }
         .nav-cta-btn span {
           font-family: var(--font-body);
@@ -199,7 +221,7 @@ export default function Navbar({
           white-space: nowrap;
         }
 
-        /* ── Orange dot ─────────────────────────────────────────────────── */
+        /* ── Orange dot ─────────────────────────────────────────────── */
         .nav-dot {
           width: 28px;
           height: 28px;
@@ -209,9 +231,9 @@ export default function Navbar({
           place-items: center;
           background: linear-gradient(145deg, #FF9200 0%, #FF3D00 100%);
           box-shadow:
-            0 0 18px rgba(255,100,0,0.65),
-            0 0 6px rgba(255,100,0,0.40),
-            inset 0 1px 0 rgba(255,210,100,0.45);
+            0 0 18px rgba(255, 100, 0, 0.65),
+            0 0 6px rgba(255, 100, 0, 0.40),
+            inset 0 1px 0 rgba(255, 210, 100, 0.45);
         }
 
         @media (max-width: 860px) {
