@@ -145,14 +145,14 @@ export function CarouselSection({
     <>
       <style>{`
         @keyframes cardEmerge {
-          0%   { opacity:0; filter:brightness(0) contrast(1.05); }
-          30%  { opacity:1; filter:brightness(0.15) contrast(1.05); }
-          100% { opacity:1; filter:brightness(0.82) contrast(1.05); }
+          0%   { opacity:0; transform:translateX(40px); filter:brightness(0) contrast(1.05); }
+          40%  { opacity:1; filter:brightness(0.15) contrast(1.05); }
+          100% { opacity:1; transform:translateX(0); filter:brightness(0.82) contrast(1.05); }
         }
         .carousel-track { display:flex; width:max-content; cursor:grab; padding:0 0 0 40px; position:absolute; left:0; transform-style:preserve-3d; transform-origin:top left; will-change:transform; }
         .carousel-track:active { cursor:grabbing; }
         .project-card { flex-shrink:0; overflow:hidden; position:relative; background:#CCCCCC; transition:transform 0.4s ease,box-shadow 0.4s ease,filter 0.4s ease; user-select:none; box-shadow:-2px 4px 6px rgba(0,0,0,0.22),-4px 10px 16px rgba(0,0,0,0.18),-6px 20px 32px rgba(0,0,0,0.14),-8px 32px 56px rgba(0,0,0,0.10),-10px 48px 80px rgba(0,0,0,0.07); filter:brightness(0.82) contrast(1.05); animation:cardEmerge 2.4s cubic-bezier(0.25,0.1,0.1,1) both; }
-        .project-card:nth-child(1){animation-delay:0.3s} .project-card:nth-child(2){animation-delay:0.55s} .project-card:nth-child(3){animation-delay:0.8s} .project-card:nth-child(4){animation-delay:1.05s} .project-card:nth-child(5){animation-delay:1.3s} .project-card:nth-child(6){animation-delay:1.55s}
+        .project-card:nth-child(1){animation-delay:0.1s} .project-card:nth-child(2){animation-delay:0.28s} .project-card:nth-child(3){animation-delay:0.46s} .project-card:nth-child(4){animation-delay:0.64s} .project-card:nth-child(5){animation-delay:0.82s} .project-card:nth-child(6){animation-delay:1.00s} .project-card:nth-child(7){animation-delay:1.18s} .project-card:nth-child(8){animation-delay:1.36s} .project-card:nth-child(9){animation-delay:1.54s} .project-card:nth-child(10){animation-delay:1.72s} .project-card:nth-child(11){animation-delay:1.90s} .project-card:nth-child(12){animation-delay:2.08s} .project-card:nth-child(13){animation-delay:2.26s} .project-card:nth-child(14){animation-delay:2.44s} .project-card:nth-child(15){animation-delay:2.62s} .project-card:nth-child(16){animation-delay:2.80s} .project-card:nth-child(17){animation-delay:2.98s} .project-card:nth-child(18){animation-delay:3.16s} .project-card:nth-child(19){animation-delay:3.34s} .project-card:nth-child(20){animation-delay:3.52s}
         .project-card:hover { transform:translateY(-18px) translateZ(30px) scale(1.05) !important; box-shadow:0 4px 8px rgba(0,0,0,0.22),0 12px 24px rgba(0,0,0,0.18),0 24px 48px rgba(0,0,0,0.14),0 40px 72px rgba(0,0,0,0.10),0 56px 100px rgba(0,0,0,0.07); filter:brightness(1.08) contrast(1); z-index:20; }
         .project-card img { width:100%; height:100%; object-fit:cover; display:block; }
         .card-placeholder { width:100%; height:100%; background:#CBCBCB; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; }
