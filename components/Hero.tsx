@@ -11,6 +11,7 @@ type CarouselProps = {
   projects?: Project[];
   scrollSpeed?: string;
   scrollDirection?: "left" | "right";
+  cardScale?: number;
   rotation?: { rotateX?: number; rotateY?: number; rotateZ?: number };
   position?: { topOffset?: number; startX?: number; sectionHeight?: number };
   perspective?: { depth?: number; originX?: number; originY?: number };
@@ -24,6 +25,7 @@ type HeroProps = {
   headlineBottom?: string;
   projects?: Project[];
   scrollDirection?: "left" | "right";
+  cardScale?: number;
   rotation?: { rotateX?: number; rotateY?: number; rotateZ?: number };
   position?: { topOffset?: number; startX?: number; sectionHeight?: number };
   perspective?: { depth?: number; originX?: number; originY?: number };
@@ -37,6 +39,7 @@ export function CarouselSection({
   projects = [],
   scrollSpeed = "medium",
   scrollDirection = "left",
+  cardScale,
   rotation,
   position,
   perspective: persp,
@@ -47,7 +50,13 @@ export function CarouselSection({
   const trackRef = useRef<HTMLDivElement>(null);
   const SPEED_MAP: Record<string, number> = { off: 0, slow: 0.3, medium: 0.6, fast: 1.2 };
 
+  // Base card dimensions
+  const BASE_W = 351;
+  const BASE_H = 527;
+
   // Resolve all values with fallback defaults
+  // cardScale multiplies the base dimensions — overrides explicit cardSize width/height
+  const scale       = cardScale ?? 1;
   const rX            = rotation?.rotateX       ?? 22;
   const rY            = rotation?.rotateY       ?? -22;
   const rZ            = rotation?.rotateZ       ?? 0;
@@ -57,8 +66,9 @@ export function CarouselSection({
   const depth         = persp?.depth            ?? 1200;
   const originX       = persp?.originX          ?? 60;
   const originY       = persp?.originY          ?? 100;
-  const cardW         = cardSize?.width         ?? 351;
-  const cardH         = cardSize?.height        ?? 527;
+  // If cardSize is explicitly set use it, otherwise apply scale to base
+  const cardW         = cardSize?.width         ?? Math.round(BASE_W * scale);
+  const cardH         = cardSize?.height        ?? Math.round(BASE_H * scale);
   const cardGap       = cardSize?.gap           ?? 24;
   const cardRadius    = cardSize?.borderRadius  ?? 16;
 
@@ -237,6 +247,7 @@ export default function Hero({
   headlineBottom = "Designer",
   projects = [],
   scrollDirection,
+  cardScale,
   rotation,
   position,
   perspective,
@@ -266,6 +277,7 @@ export default function Hero({
       <CarouselSection
         projects={projects}
         scrollDirection={scrollDirection}
+        cardScale={cardScale}
         rotation={rotation}
         position={position}
         perspective={perspective}

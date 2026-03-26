@@ -74,6 +74,26 @@ export const heroSection = defineType({
       ],
     }),
     defineField({
+      name: "cardScale",
+      title: "Carousel — Card Scale",
+      type: "number",
+      description: "Multiplier on the base card size (351×527px). Overrides Card Size width/height if set.",
+      options: {
+        list: [
+          { title: "0.5× — Half size", value: 0.5 },
+          { title: "0.75× — Small", value: 0.75 },
+          { title: "1× — Default (351×527)", value: 1 },
+          { title: "1.25× — Slightly larger", value: 1.25 },
+          { title: "1.5× — Large", value: 1.5 },
+          { title: "1.75× — Extra large", value: 1.75 },
+          { title: "2× — Double size (702×1054)", value: 2 },
+          { title: "2.5× — Huge", value: 2.5 },
+          { title: "3× — Maximum", value: 3 },
+        ],
+      },
+      initialValue: 1,
+    }),
+    defineField({
       name: "cardSize",
       title: "Carousel — Card Size",
       type: "object",

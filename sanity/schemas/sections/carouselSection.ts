@@ -10,7 +10,7 @@ export const carouselSection = defineType({
   fields: [
     defineField({
       name: "note",
-      title: "ℹ️ About this section",
+      title: "About this section",
       type: "string",
       readOnly: true,
       initialValue: "Projects are managed separately under the Projects section in the sidebar.",
@@ -23,10 +23,10 @@ export const carouselSection = defineType({
       type: "string",
       options: {
         list: [
-          { title: "⏸ Off (drag only)", value: "off" },
-          { title: "🐢 Slow", value: "slow" },
-          { title: "➡️ Medium", value: "medium" },
-          { title: "⚡ Fast", value: "fast" },
+          { title: "Off (drag only)", value: "off" },
+          { title: "Slow", value: "slow" },
+          { title: "Medium", value: "medium" },
+          { title: "Fast", value: "fast" },
         ],
         layout: "radio",
       },
@@ -38,12 +38,34 @@ export const carouselSection = defineType({
       type: "string",
       options: {
         list: [
-          { title: "← Left (default)", value: "left" },
-          { title: "→ Right", value: "right" },
+          { title: "Left (default)", value: "left" },
+          { title: "Right", value: "right" },
         ],
         layout: "radio",
       },
       initialValue: "left",
+    }),
+
+    // ── Card Scale ────────────────────────────────────────
+    defineField({
+      name: "cardScale",
+      title: "Card Scale",
+      type: "number",
+      description: "Multiplier on the base card size (351x527px). 1x = default, 2x = double. Overrides Card Size width/height if set.",
+      options: {
+        list: [
+          { title: "0.5x — Half size", value: 0.5 },
+          { title: "0.75x — Small", value: 0.75 },
+          { title: "1x — Default (351x527)", value: 1 },
+          { title: "1.25x — Slightly larger", value: 1.25 },
+          { title: "1.5x — Large", value: 1.5 },
+          { title: "1.75x — Extra large", value: 1.75 },
+          { title: "2x — Double size (702x1054)", value: 2 },
+          { title: "2.5x — Huge", value: 2.5 },
+          { title: "3x — Maximum", value: 3 },
+        ],
+      },
+      initialValue: 1,
     }),
 
     // ── 3D Rotation ───────────────────────────────────────
@@ -51,33 +73,12 @@ export const carouselSection = defineType({
       name: "rotation",
       title: "3D Rotation",
       type: "object",
-      description: "Tilt and rotate the carousel in 3D space. Default: X=22°, Y=-22°, Z=0°",
+      description: "Tilt and rotate the carousel in 3D space. Default: X=22, Y=-22, Z=0",
       options: { collapsible: true, collapsed: false },
       fields: [
-        defineField({
-          name: "rotateX",
-          title: "Rotate X — Tilt (top away / toward you)",
-          type: "number",
-          description: "Degrees. Default 22. Positive = top tilts away. Range: -90 to 90",
-          initialValue: 22,
-          validation: (Rule) => Rule.min(-90).max(90),
-        }),
-        defineField({
-          name: "rotateY",
-          title: "Rotate Y — Swing (left side back / forward)",
-          type: "number",
-          description: "Degrees. Default -22. Negative = left side swings back. Range: -90 to 90",
-          initialValue: -22,
-          validation: (Rule) => Rule.min(-90).max(90),
-        }),
-        defineField({
-          name: "rotateZ",
-          title: "Rotate Z — Roll (clockwise tilt)",
-          type: "number",
-          description: "Degrees. Default 0. Positive = clockwise. Range: -45 to 45",
-          initialValue: 0,
-          validation: (Rule) => Rule.min(-45).max(45),
-        }),
+        defineField({ name: "rotateX", title: "Rotate X — Tilt (top away / toward you)", type: "number", description: "Default 22. Range: -90 to 90", initialValue: 22, validation: (Rule) => Rule.min(-90).max(90) }),
+        defineField({ name: "rotateY", title: "Rotate Y — Swing (left side back / forward)", type: "number", description: "Default -22. Range: -90 to 90", initialValue: -22, validation: (Rule) => Rule.min(-90).max(90) }),
+        defineField({ name: "rotateZ", title: "Rotate Z — Roll (clockwise tilt)", type: "number", description: "Default 0. Range: -45 to 45", initialValue: 0, validation: (Rule) => Rule.min(-45).max(45) }),
       ],
     }),
 
@@ -86,30 +87,12 @@ export const carouselSection = defineType({
       name: "position",
       title: "Position",
       type: "object",
-      description: "Move the carousel within the section. Default: top=575px, left=0, startX=-280px",
+      description: "Move the carousel within the section.",
       options: { collapsible: true, collapsed: false },
       fields: [
-        defineField({
-          name: "topOffset",
-          title: "Top Offset (px) — vertical position within section",
-          type: "number",
-          description: "How far from the top of the carousel section. Default 575",
-          initialValue: 575,
-        }),
-        defineField({
-          name: "startX",
-          title: "Start X (px) — horizontal starting offset",
-          type: "number",
-          description: "Initial horizontal offset before scrolling. Default -280",
-          initialValue: -280,
-        }),
-        defineField({
-          name: "sectionHeight",
-          title: "Section Height (px) — total height of the carousel area",
-          type: "number",
-          description: "Increase if cards are clipped. Default 1100",
-          initialValue: 1100,
-        }),
+        defineField({ name: "topOffset", title: "Top Offset (px) — vertical position", type: "number", description: "Default 575", initialValue: 575 }),
+        defineField({ name: "startX", title: "Start X (px) — horizontal starting offset", type: "number", description: "Default -280", initialValue: -280 }),
+        defineField({ name: "sectionHeight", title: "Section Height (px)", type: "number", description: "Increase if cards are clipped. Default 1100", initialValue: 1100 }),
       ],
     }),
 
@@ -121,77 +104,31 @@ export const carouselSection = defineType({
       description: "Controls how dramatic the 3D depth effect looks.",
       options: { collapsible: true, collapsed: true },
       fields: [
-        defineField({
-          name: "depth",
-          title: "Perspective Depth (px)",
-          type: "number",
-          description: "Lower = more dramatic. Higher = flatter. Default 1200",
-          initialValue: 1200,
-          validation: (Rule) => Rule.min(200).max(5000),
-        }),
-        defineField({
-          name: "originX",
-          title: "Vanishing Point X (%)",
-          type: "number",
-          description: "Default 60 (slightly right of center)",
-          initialValue: 60,
-          validation: (Rule) => Rule.min(0).max(100),
-        }),
-        defineField({
-          name: "originY",
-          title: "Vanishing Point Y (%)",
-          type: "number",
-          description: "Default 100 (bottom of section)",
-          initialValue: 100,
-          validation: (Rule) => Rule.min(0).max(100),
-        }),
+        defineField({ name: "depth", title: "Perspective Depth (px)", type: "number", description: "Lower = more dramatic. Default 1200", initialValue: 1200, validation: (Rule) => Rule.min(200).max(5000) }),
+        defineField({ name: "originX", title: "Vanishing Point X (%)", type: "number", description: "Default 60", initialValue: 60, validation: (Rule) => Rule.min(0).max(100) }),
+        defineField({ name: "originY", title: "Vanishing Point Y (%)", type: "number", description: "Default 100", initialValue: 100, validation: (Rule) => Rule.min(0).max(100) }),
       ],
     }),
 
-    // ── Card Size ─────────────────────────────────────────
+    // ── Card Size (fine-tune, overridden by cardScale) ────
     defineField({
       name: "cardSize",
-      title: "Card Size",
+      title: "Card Size (fine-tune)",
       type: "object",
-      description: "Width and height of each project card.",
+      description: "Manual pixel overrides. Leave blank to use Card Scale above.",
       options: { collapsible: true, collapsed: true },
       fields: [
-        defineField({
-          name: "width",
-          title: "Card Width (px)",
-          type: "number",
-          initialValue: 351,
-          validation: (Rule) => Rule.min(100).max(800),
-        }),
-        defineField({
-          name: "height",
-          title: "Card Height (px)",
-          type: "number",
-          initialValue: 527,
-          validation: (Rule) => Rule.min(100).max(1200),
-        }),
-        defineField({
-          name: "gap",
-          title: "Gap Between Cards (px)",
-          type: "number",
-          initialValue: 24,
-          validation: (Rule) => Rule.min(0).max(200),
-        }),
-        defineField({
-          name: "borderRadius",
-          title: "Card Corner Radius (px)",
-          type: "number",
-          initialValue: 16,
-          validation: (Rule) => Rule.min(0).max(100),
-        }),
+        defineField({ name: "width", title: "Card Width (px)", type: "number", initialValue: 351, validation: (Rule) => Rule.min(100).max(800) }),
+        defineField({ name: "height", title: "Card Height (px)", type: "number", initialValue: 527, validation: (Rule) => Rule.min(100).max(1200) }),
+        defineField({ name: "gap", title: "Gap Between Cards (px)", type: "number", initialValue: 24, validation: (Rule) => Rule.min(0).max(200) }),
+        defineField({ name: "borderRadius", title: "Card Corner Radius (px)", type: "number", initialValue: 16, validation: (Rule) => Rule.min(0).max(100) }),
       ],
     }),
 
-    typographyObject("cardTitleTypography", "🔤 Card Title Typography"),
-    typographyObject("cardCategoryTypography", "🔤 Card Category Typography"),
+    typographyObject("cardTitleTypography", "Card Title Typography"),
+    typographyObject("cardCategoryTypography", "Card Category Typography"),
   ],
   preview: {
     prepare: () => ({ title: "Project Carousel", subtitle: "3D draggable cards" }),
   },
 });
-

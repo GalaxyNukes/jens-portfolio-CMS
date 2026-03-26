@@ -67,6 +67,7 @@ export default async function HomePage() {
                     rotation={section.rotation}
                     position={section.position}
                     perspective={section.perspective}
+                    cardScale={section.cardScale}
                     cardSize={section.cardSize}
                     scrollDirection={section.scrollDirection}
                     topLineTypography={section.topLineTypography}
@@ -83,6 +84,7 @@ export default async function HomePage() {
                     rotation={section.rotation}
                     position={section.position}
                     perspective={section.perspective}
+                    cardScale={section.cardScale}
                     cardSize={section.cardSize}
                     cardTitleTypography={section.cardTitleTypography}
                     cardCategoryTypography={section.cardCategoryTypography}
